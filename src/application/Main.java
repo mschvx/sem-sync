@@ -26,51 +26,28 @@ public class Main extends Application {
             primaryStage.show();
 
             // Load the logo pics
-            Image pencil1 = new Image("file:Elements/Pencil1.png");
-            Image pencil2 = new Image("file:Elements/Pencil2.png");
-            
-            Image letter1 = new Image("file:Elements/Letter1.png");
-            Image letter2 = new Image("file:Elements/Letter2.png");
-            
-            Image sync1 = new Image("file:Elements/Sync1.png");
-            Image sync2 = new Image("file:Elements/Sync2.png");
+            Image logo1 = new Image("file:Elements/Logo1.png");
+            Image logo2 = new Image("file:Elements/Logo2.png");
 
             // Place and size the logo to the screen
-            ImageView pencilView = new ImageView(pencil1);
-            pencilView.setPreserveRatio(true);
-            pencilView.setFitWidth(600); // Size
-            pencilView.setTranslateX(-450); // Shift left
+            ImageView logoView = new ImageView(logo1);
+            logoView.setPreserveRatio(true);
+            logoView.setFitWidth(900); // Size
+            logoView.setTranslateX(-350); // Shift left
             
-            // Place and size the logo's other letters to the screen
-            ImageView letterView = new ImageView(letter1);
-            letterView.setPreserveRatio(true);
-            letterView.setFitWidth(450); // Size
-            letterView.setTranslateX(-240); // Shift left  
-            letterView.setTranslateY(-100); // Shift up
-
-            ImageView syncView = new ImageView(sync2);
-            syncView.setPreserveRatio(true);
-            syncView.setFitWidth(550); // Size
-            syncView.setTranslateX(-420); // Shift left  
-            syncView.setTranslateY(0); // Shift up
-            
-            // Combine pencil and letters together
+            // Combine logo together
             StackPane logoPane = new StackPane();
-            logoPane.getChildren().addAll(pencilView, letterView, syncView);
+            logoPane.getChildren().addAll(logoView);
             root.setCenter(logoPane);
 
             // Animation that swaps logo images every 0.5 seconds
             Timeline timeline = new Timeline(
                 new KeyFrame(Duration.seconds(0.5), event -> {
-                    // Swap all the logo images
-                    if (pencilView.getImage() == pencil1 && letterView.getImage() == letter1 && syncView.getImage() == sync2) {
-                        pencilView.setImage(pencil2);
-                        letterView.setImage(letter2);
-                        syncView.setImage(sync1);
+                    // Swap the logo images
+                    if (logoView.getImage() == logo1) {
+                        logoView.setImage(logo2);
                     } else {
-                        pencilView.setImage(pencil1);
-                        letterView.setImage(letter1);
-                        syncView.setImage(sync2);
+                        logoView.setImage(logo1);
                     }
                 })
             );
