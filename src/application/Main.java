@@ -41,10 +41,14 @@ public class Main extends Application {
             
             Image sprite1 = new Image("file:Elements/Sprite1.png");
             Image sprite2 = new Image("file:Elements/Sprite2.png");
+            
+            Image plane1 = new Image("file:Elements/Plane1.png");
+            Image plane2 = new Image("file:Elements/Plane2.png");
 
             // Load logo images 
             Image logo1 = new Image("file:Elements/Logo1.png");
             Image logo2 = new Image("file:Elements/Logo2.png");
+            
 
             // Positioning animated logo
             ImageView logoView = new ImageView(logo1);
@@ -77,6 +81,13 @@ public class Main extends Application {
             spriteView.setLayoutX(230); 
             spriteView.setLayoutY(0); 
             root.getChildren().add(spriteView);
+            
+            ImageView planeView = new ImageView(plane2);
+            planeView.setPreserveRatio(true);
+            planeView.setFitWidth(300);
+            planeView.setLayoutX(650); 
+            planeView.setLayoutY(550); 
+            root.getChildren().add(planeView);
             
 
             // Timeline to swap images every 0.5 seconds
@@ -124,7 +135,7 @@ public class Main extends Application {
             Font taglineFont = Font.loadFont(Fonts.COMING_SOON, 30);
             tagline.setFont(taglineFont);
             tagline.setStyle("-fx-text-fill: black;");
-            tagline.setLayoutX(160);
+            tagline.setLayoutX(120);
             tagline.setLayoutY(550);
 
             root.getChildren().add(tagline);
@@ -188,7 +199,7 @@ public class Main extends Application {
             
             // Button for About Sem Sync
             Button aboutButton = new Button("About Sem Sync");
-            aboutButton.setLayoutX(250);
+            aboutButton.setLayoutX(220);
             aboutButton.setLayoutY(620);
             aboutButton.setPrefWidth(300);
             aboutButton.setPrefHeight(60);
@@ -196,13 +207,51 @@ public class Main extends Application {
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             root.getChildren().add(aboutButton);
             
+            // Event handlers for buttons
+            // When hovering over login or register, start plane animation
+            loginButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
+            registerButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
 
-           
-
+            // When mouse exits, stop the plane animation and reset 
+            loginButton.setOnMouseExited(e -> stopPlaneAnimation(planeView, plane2));
+            registerButton.setOnMouseExited(e -> stopPlaneAnimation(planeView, plane2));
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    
+    // For animation:
+    private Timeline planeTimeline; // animation reference
+
+    // Method to animate the plane doodle
+    private void startPlaneAnimation(ImageView planeView, Image plane1, Image plane2) {
+        if (planeTimeline != null && planeTimeline.getStatus() == Timeline.Status.RUNNING) {
+            return; // if already animating, don't do anything
+        }
+        // else swap every 0.5 seconds as long as the mouse is on the button 
+        planeTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(0.5), event -> {
+                if (planeView.getImage() == plane1) {
+                    planeView.setImage(plane2);
+                } else {
+                    planeView.setImage(plane1);
+                }
+            })
+        );
+        planeTimeline.setCycleCount(Timeline.INDEFINITE);
+        planeTimeline.play();
+    }
+
+    // Method to stop animating the plane doodle
+    private void stopPlaneAnimation(ImageView planeView, Image plane2) {
+        if (planeTimeline != null) {
+            planeTimeline.stop();
+            planeView.setImage(plane2); // reset to default
+        }
+    }
+
+
 
     public static void main(String[] args) {
         launch(args);
