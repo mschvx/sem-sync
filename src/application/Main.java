@@ -15,8 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
-import javafx.scene.text.FontWeight;
-
+import javafx.scene.control.Button;
 
 public class Main extends Application {
     @Override
@@ -167,6 +166,28 @@ public class Main extends Application {
             );
             root.getChildren().add(passwordField);
 
+            // Button for Login
+            Button loginButton = new Button("Login");
+            loginButton.setLayoutX(950);
+            loginButton.setLayoutY(580);
+            loginButton.setPrefWidth(400);
+            loginButton.setPrefHeight(60);
+            loginButton.setFont(Font.font("Montserrat", 30));
+            loginButton.setStyle(
+                "-fx-background-color: #439fd0; " +  
+                "-fx-border-color: black; " +
+                "-fx-border-width: 4; " +
+                "-fx-border-radius: 50; " +
+                "-fx-background-radius: 50; " +
+                "-fx-text-fill: black;"
+            );
+            root.getChildren().add(loginButton);
+            
+            // Button for Create Account
+            
+            // Button for About Sem Sync
+            
+    
             
 
            
