@@ -172,7 +172,7 @@ public class Main extends Application {
             loginButton.setLayoutY(580);
             loginButton.setPrefWidth(500);
             loginButton.setPrefHeight(90);
-            loginButton.setFont(Font.font("Montserrat", 30));
+            loginButton.setFont(Fonts.loadSensaWild(40));
             loginButton.setStyle(
                 "-fx-background-color: #439fd0; " +  
                 "-fx-border-color: black; " +
@@ -189,7 +189,7 @@ public class Main extends Application {
             registerButton.setLayoutY(680);
             registerButton.setPrefWidth(500);
             registerButton.setPrefHeight(60);
-            registerButton.setFont(Font.font("Montserrat", 30));
+            registerButton.setFont(Fonts.loadSensaWild(40));
             registerButton.setStyle(
                 "-fx-background-color: #9ad1ee; " +  
                 "-fx-border-color: black; " +
@@ -201,8 +201,21 @@ public class Main extends Application {
             root.getChildren().add(registerButton);
             
             // Button for About Sem Sync
-            
-    
+            Button aboutButton = new Button("About Sem Sync");
+            aboutButton.setLayoutX(250);
+            aboutButton.setLayoutY(620);
+            aboutButton.setPrefWidth(300);
+            aboutButton.setPrefHeight(60);
+            aboutButton.setFont(javafx.scene.text.Font.font("Montserrat", 20));
+            aboutButton.setStyle(
+                "-fx-background-color: #439fd0; " +  
+                "-fx-border-color: black; " +
+                "-fx-border-width: 4; " +
+                "-fx-border-radius: 50; " +
+                "-fx-background-radius: 50; " +
+                "-fx-text-fill: black;"
+            );
+            root.getChildren().add(aboutButton);
             
 
            
