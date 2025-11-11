@@ -168,10 +168,10 @@ public class Main extends Application {
 
             // Button for Login
             Button loginButton = new Button("Login");
-            loginButton.setLayoutX(950);
+            loginButton.setLayoutX(900);
             loginButton.setLayoutY(580);
-            loginButton.setPrefWidth(400);
-            loginButton.setPrefHeight(60);
+            loginButton.setPrefWidth(500);
+            loginButton.setPrefHeight(90);
             loginButton.setFont(Font.font("Montserrat", 30));
             loginButton.setStyle(
                 "-fx-background-color: #439fd0; " +  
@@ -184,6 +184,21 @@ public class Main extends Application {
             root.getChildren().add(loginButton);
             
             // Button for Create Account
+            Button registerButton = new Button("Create Account");
+            registerButton.setLayoutX(900);
+            registerButton.setLayoutY(680);
+            registerButton.setPrefWidth(500);
+            registerButton.setPrefHeight(60);
+            registerButton.setFont(Font.font("Montserrat", 30));
+            registerButton.setStyle(
+                "-fx-background-color: #9ad1ee; " +  
+                "-fx-border-color: black; " +
+                "-fx-border-width: 4; " +
+                "-fx-border-radius: 50; " +
+                "-fx-background-radius: 50; " +
+                "-fx-text-fill: black;"
+            );
+            root.getChildren().add(registerButton);
             
             // Button for About Sem Sync
             
