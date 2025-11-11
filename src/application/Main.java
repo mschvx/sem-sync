@@ -8,6 +8,8 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane; 
+import javafx.scene.control.Label;
+import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
@@ -39,7 +41,7 @@ public class Main extends Application {
             logoView.setPreserveRatio(true);
             logoView.setFitWidth(900);
             logoView.setLayoutX(-20); 
-            logoView.setLayoutY(100); 
+            logoView.setLayoutY(70); 
             root.getChildren().add(logoView);
 
             // Timeline to swap logo images every 0.5 seconds
@@ -54,6 +56,33 @@ public class Main extends Application {
             );
             timeline.setCycleCount(Timeline.INDEFINITE); // Run forever while program is running
             timeline.play();
+
+            // Add text
+            Label welcome = new Label("WELCOME!");
+            Font welcomeFont = Font.loadFont(Fonts.SENSA_SERIF, 150);
+            welcome.setFont(welcomeFont);
+            welcome.setStyle("-fx-text-fill: black;");
+            welcome.setLayoutX(1000);
+            welcome.setLayoutY(25);
+            
+            Label username = new Label("Username: ");
+            Font usernameFont = Font.loadFont(Fonts.COMING_SOON, 60);
+            username.setFont(usernameFont);
+            username.setStyle("-fx-text-fill: black;");
+            username.setLayoutX(850);
+            username.setLayoutY(150);
+            
+            Label password = new Label("Password: ");
+            Font passwordFont = Font.loadFont(Fonts.COMING_SOON, 60);
+            password.setFont(passwordFont);
+            password.setStyle("-fx-text-fill: black;");
+            password.setLayoutX(850);
+            password.setLayoutY(350);
+
+            
+            root.getChildren().add(username);
+            root.getChildren().add(password);
+            root.getChildren().add(welcome);
 
         } catch (Exception e) {
             e.printStackTrace();
