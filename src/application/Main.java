@@ -31,10 +31,10 @@ import javafx.scene.control.Button;
 
 public class Main extends Application {
 
-
     Path path = Path.of(System.getProperty("user.dir"));
 
-// Load method to get the data from CSV file
+    // Load method to get the data from CSV file
+    // Doesn't properly work yet since wala pang database. (P.S naglagay muna ako ng placeholder for the mean time)
     private ObservableList<User> loadData(Path path) {
 	    ObservableList<User> list = FXCollections.<User>observableArrayList();
 	    Path folder = Paths.get("placeholder");
@@ -282,7 +282,7 @@ public class Main extends Application {
             ObservableList<User> data = loadData(path);
 
             // Button Click for Login
-
+            // Doesn't properly work yet since wala pang database
             loginButton.setOnAction(e -> {
                 try {
                     String uname = usernameField.getText().trim();
