@@ -2,22 +2,84 @@
 
 package application;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane; 
+import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
 public class Main extends Application {
+
+
+    Path path = Path.of(System.getProperty("user.dir"));
+
+// Load method to get the data from CSV file
+    private ObservableList<User> loadData(Path path) {
+	    ObservableList<User> list = FXCollections.<User>observableArrayList();
+	    Path folder = Paths.get("placeholder");
+	    Path file = folder.resolve("placeholder.csv");
+
+	    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+
+	    if(!Files.exists(file)) {
+	        errorAlert.setHeaderText("Error!");
+	        errorAlert.setContentText("File not Found!");
+	        errorAlert.showAndWait();
+	        return list;
+	    }
+
+	    try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+	        String line;
+
+	        while((line = reader.readLine()) != null) {
+	            line = line.trim();
+
+	            if(line.isEmpty()) {
+	                continue;
+	            }
+
+	        String[] parts = line.split(",");
+
+	        String username = parts[0].trim();
+	        String password = parts[1].trim();
+
+	        list.add(new User(username,password));
+	    }
+
+	} catch (IOException e) {
+	    errorAlert.setHeaderText("Error");
+	    errorAlert.setContentText("Cannot Load.");
+	    errorAlert.showAndWait();
+	    return list;
+	    }
+
+	    return list;
+	}
+
+    // For animation:
+    private Timeline planeTimeline; // animation reference
+
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -28,67 +90,67 @@ public class Main extends Application {
             primaryStage.setTitle("SemSync"); // Window title
             primaryStage.setMaximized(true); // Maximize window to fit screen
             primaryStage.show();
-            
+
             // Load paper image
             ImageView background = new ImageView(new Image("file:Elements/LoginPaper.png"));
             background.setFitWidth(1536);
             background.setFitHeight(864);
             root.getChildren().add(background);
-            
+
             // Load sprites
             Image star1 = new Image("file:Elements/Star1.png");
             Image star2 = new Image("file:Elements/Star2.png");
-            
+
             Image sprite1 = new Image("file:Elements/Sprite1.png");
             Image sprite2 = new Image("file:Elements/Sprite2.png");
-            
+
             Image plane1 = new Image("file:Elements/Plane1.png");
             Image plane2 = new Image("file:Elements/Plane2.png");
 
-            // Load logo images 
+            // Load logo images
             Image logo1 = new Image("file:Elements/Logo1.png");
             Image logo2 = new Image("file:Elements/Logo2.png");
-            
+
 
             // Positioning animated logo
             ImageView logoView = new ImageView(logo1);
             logoView.setPreserveRatio(true);
             logoView.setFitWidth(940);
-            logoView.setLayoutX(-40); 
-            logoView.setLayoutY(40); 
+            logoView.setLayoutX(-40);
+            logoView.setLayoutY(40);
             root.getChildren().add(logoView);
-            
+
             // Positioning some sprites
             ImageView starView1 = new ImageView(star1);
             starView1.setPreserveRatio(true);
             starView1.setFitWidth(180);
-            starView1.setLayoutX(830); 
-            starView1.setLayoutY(10); 
-            starView1.setRotate(20); 
+            starView1.setLayoutX(830);
+            starView1.setLayoutY(10);
+            starView1.setRotate(20);
             root.getChildren().add(starView1);
-            
+
             ImageView starView2 = new ImageView(star2);
             starView2.setPreserveRatio(true);
             starView2.setFitWidth(180);
-            starView2.setLayoutX(1400); 
-            starView2.setLayoutY(330); 
-            starView2.setRotate(170); 
+            starView2.setLayoutX(1400);
+            starView2.setLayoutY(330);
+            starView2.setRotate(170);
             root.getChildren().add(starView2);
-            
+
             ImageView spriteView = new ImageView(sprite1);
             spriteView.setPreserveRatio(true);
             spriteView.setFitWidth(1300);
-            spriteView.setLayoutX(230); 
-            spriteView.setLayoutY(0); 
+            spriteView.setLayoutX(230);
+            spriteView.setLayoutY(0);
             root.getChildren().add(spriteView);
-            
+
             ImageView planeView = new ImageView(plane2);
             planeView.setPreserveRatio(true);
             planeView.setFitWidth(300);
-            planeView.setLayoutX(650); 
-            planeView.setLayoutY(550); 
+            planeView.setLayoutX(650);
+            planeView.setLayoutY(550);
             root.getChildren().add(planeView);
-            
+
 
             // Timeline to swap images every 0.5 seconds
             Timeline timeline = new Timeline(
@@ -116,21 +178,21 @@ public class Main extends Application {
             welcome.setStyle("-fx-text-fill: black;");
             welcome.setLayoutX(1000);
             welcome.setLayoutY(25);
-            
+
             Label username = new Label("Username: ");
             Font usernameFont = Font.loadFont(Fonts.COMING_SOON, 60);
             username.setFont(usernameFont);
             username.setStyle("-fx-text-fill: black;");
             username.setLayoutX(850);
             username.setLayoutY(170);
-            
+
             Label password = new Label("Password: ");
             Font passwordFont = Font.loadFont(Fonts.COMING_SOON, 60);
             password.setFont(passwordFont);
             password.setStyle("-fx-text-fill: black;");
             password.setLayoutX(850);
             password.setLayoutY(370);
-            
+
             Label tagline = new Label("Scheduling has never been this easy!");
             Font taglineFont = Font.loadFont(Fonts.COMING_SOON, 30);
             tagline.setFont(taglineFont);
@@ -142,8 +204,8 @@ public class Main extends Application {
             root.getChildren().add(username);
             root.getChildren().add(password);
             root.getChildren().add(welcome);
-            
-         // Username text field 
+
+         // Username text field
             TextField usernameField = new TextField();
             usernameField.setLayoutX(850);
             usernameField.setLayoutY(280);
@@ -151,16 +213,16 @@ public class Main extends Application {
             usernameField.setPrefHeight(60);
             usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
             usernameField.setStyle(
-                "-fx-background-color: #ebebeb; " + 
-                "-fx-border-color: black; " +            
-                "-fx-border-radius: 15; " +             
-                "-fx-background-radius: 15; " +          
+                "-fx-background-color: #ebebeb; " +
+                "-fx-border-color: black; " +
+                "-fx-border-radius: 15; " +
+                "-fx-background-radius: 15; " +
                 "-fx-text-fill: black;" +
-                "-fx-border-width: 4; "                  
+                "-fx-border-width: 4; "
             );
             root.getChildren().add(usernameField);
 
-            // Password text field 
+            // Password text field
             PasswordField passwordField = new PasswordField();
             passwordField.setLayoutX(850);
             passwordField.setLayoutY(480);
@@ -173,7 +235,7 @@ public class Main extends Application {
                 "-fx-border-radius: 15; " +
                 "-fx-background-radius: 15; " +
                 "-fx-text-fill: black;" +
-                "-fx-border-width: 4; " 
+                "-fx-border-width: 4; "
             );
             root.getChildren().add(passwordField);
 
@@ -186,7 +248,7 @@ public class Main extends Application {
             loginButton.setFont(Fonts.loadSensaWild(40));
             loginButton.getStyleClass().add("btn-login"); // Hover effect
             root.getChildren().add(loginButton);
-            
+
             // Button for Create Account
             Button registerButton = new Button("Create Account");
             registerButton.setLayoutX(900);
@@ -196,7 +258,7 @@ public class Main extends Application {
             registerButton.setFont(Fonts.loadSensaWild(40));
             registerButton.getStyleClass().add("btn-register"); // Hover effect
             root.getChildren().add(registerButton);
-            
+
             // Button for About Sem Sync
             Button aboutButton = new Button("About Sem Sync");
             aboutButton.setLayoutX(220);
@@ -206,30 +268,77 @@ public class Main extends Application {
             aboutButton.setFont(javafx.scene.text.Font.font("Montserrat", 20));
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             root.getChildren().add(aboutButton);
-            
+
             // Event handlers for buttons
             // When hovering over login or register, start plane animation
             loginButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
             registerButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
 
-            // When mouse exits, stop the plane animation and reset 
+            // When mouse exits, stop the plane animation and reset
             loginButton.setOnMouseExited(e -> stopPlaneAnimation(planeView, plane2));
             registerButton.setOnMouseExited(e -> stopPlaneAnimation(planeView, plane2));
-            
+
+            // Loading data from CSV File
+            ObservableList<User> data = loadData(path);
+
+            // Button Click for Login
+
+            loginButton.setOnAction(e -> {
+                try {
+                    String uname = usernameField.getText().trim();
+                    String pass = passwordField.getText().trim();
+                    User currentUser = null;
+                    boolean usernameFound = false;
+
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+
+                    if (data == null) {
+                        errorAlert.setHeaderText("Error!");
+                        errorAlert.setContentText("Could not load data!");
+                        errorAlert.showAndWait();
+                        return;
+                    }
+
+                    for (User user : data) {
+                        if (user.getUsername().equals(uname)) {
+                            usernameFound = true;
+
+                            if (user.getPassword().equals(pass)) {
+                                currentUser = user;
+                            }
+                            break;
+                        }
+                    }                  
+
+                    if (currentUser != null) {
+                        Dashboard db = new Dashboard();
+                        db.showDashboard(primaryStage);
+                    } else if (usernameFound) {
+                        errorAlert.setHeaderText("Login Failed!");
+                        errorAlert.setContentText("Wrong Password!");
+                        errorAlert.showAndWait();
+                    } else {
+                        errorAlert.setHeaderText("Login Failed!");
+                        errorAlert.setContentText("Account does not exist!");
+                        errorAlert.showAndWait();
+                    }
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    
-    // For animation:
-    private Timeline planeTimeline; // animation reference
+    } // Correct closing brace for start method
 
     // Method to animate the plane doodle
     private void startPlaneAnimation(ImageView planeView, Image plane1, Image plane2) {
         if (planeTimeline != null && planeTimeline.getStatus() == Timeline.Status.RUNNING) {
             return; // if already animating, don't do anything
         }
-        // else swap every 0.5 seconds as long as the mouse is on the button 
+        // else swap every 0.5 seconds as long as the mouse is on the button
         planeTimeline = new Timeline(
             new KeyFrame(Duration.seconds(0.5), event -> {
                 if (planeView.getImage() == plane1) {
@@ -252,8 +361,7 @@ public class Main extends Application {
     }
 
 
-
     public static void main(String[] args) {
         launch(args);
     }
-}
+} 
