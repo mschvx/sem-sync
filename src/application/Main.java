@@ -13,6 +13,10 @@ import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField;
+import javafx.scene.text.FontWeight;
+
 
 public class Main extends Application {
     @Override
@@ -63,8 +67,8 @@ public class Main extends Application {
             ImageView starView2 = new ImageView(star2);
             starView2.setPreserveRatio(true);
             starView2.setFitWidth(180);
-            starView2.setLayoutX(1350); 
-            starView2.setLayoutY(300); 
+            starView2.setLayoutX(1400); 
+            starView2.setLayoutY(330); 
             starView2.setRotate(170); 
             root.getChildren().add(starView2);
             
@@ -108,14 +112,14 @@ public class Main extends Application {
             username.setFont(usernameFont);
             username.setStyle("-fx-text-fill: black;");
             username.setLayoutX(850);
-            username.setLayoutY(150);
+            username.setLayoutY(170);
             
             Label password = new Label("Password: ");
             Font passwordFont = Font.loadFont(Fonts.COMING_SOON, 60);
             password.setFont(passwordFont);
             password.setStyle("-fx-text-fill: black;");
             password.setLayoutX(850);
-            password.setLayoutY(350);
+            password.setLayoutY(370);
             
             Label tagline = new Label("Scheduling has never been this easy!");
             Font taglineFont = Font.loadFont(Fonts.COMING_SOON, 30);
@@ -128,6 +132,44 @@ public class Main extends Application {
             root.getChildren().add(username);
             root.getChildren().add(password);
             root.getChildren().add(welcome);
+            
+         // Username text field 
+            TextField usernameField = new TextField();
+            usernameField.setLayoutX(850);
+            usernameField.setLayoutY(280);
+            usernameField.setPrefWidth(600);
+            usernameField.setPrefHeight(60);
+            usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+            usernameField.setStyle(
+                "-fx-background-color: #ebebeb; " + 
+                "-fx-border-color: black; " +            
+                "-fx-border-radius: 15; " +             
+                "-fx-background-radius: 15; " +          
+                "-fx-text-fill: black;" +
+                "-fx-border-width: 4; "                  
+            );
+            root.getChildren().add(usernameField);
+
+            // Password text field 
+            PasswordField passwordField = new PasswordField();
+            passwordField.setLayoutX(850);
+            passwordField.setLayoutY(480);
+            passwordField.setPrefWidth(600);
+            passwordField.setPrefHeight(60);
+            passwordField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+            passwordField.setStyle(
+                "-fx-background-color: #ebebeb; " +
+                "-fx-border-color: black; " +
+                "-fx-border-radius: 15; " +
+                "-fx-background-radius: 15; " +
+                "-fx-text-fill: black;" +
+                "-fx-border-width: 4; " 
+            );
+            root.getChildren().add(passwordField);
+
+            
+
+           
 
         } catch (Exception e) {
             e.printStackTrace();
