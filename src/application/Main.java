@@ -173,14 +173,7 @@ public class Main extends Application {
             loginButton.setPrefWidth(500);
             loginButton.setPrefHeight(90);
             loginButton.setFont(Fonts.loadSensaWild(40));
-            loginButton.setStyle(
-                "-fx-background-color: #439fd0; " +  
-                "-fx-border-color: black; " +
-                "-fx-border-width: 4; " +
-                "-fx-border-radius: 50; " +
-                "-fx-background-radius: 50; " +
-                "-fx-text-fill: black;"
-            );
+            loginButton.getStyleClass().add("btn-login"); // Hover effect
             root.getChildren().add(loginButton);
             
             // Button for Create Account
@@ -190,14 +183,7 @@ public class Main extends Application {
             registerButton.setPrefWidth(500);
             registerButton.setPrefHeight(60);
             registerButton.setFont(Fonts.loadSensaWild(40));
-            registerButton.setStyle(
-                "-fx-background-color: #9ad1ee; " +  
-                "-fx-border-color: black; " +
-                "-fx-border-width: 4; " +
-                "-fx-border-radius: 50; " +
-                "-fx-background-radius: 50; " +
-                "-fx-text-fill: black;"
-            );
+            registerButton.getStyleClass().add("btn-register"); // Hover effect
             root.getChildren().add(registerButton);
             
             // Button for About Sem Sync
@@ -207,14 +193,7 @@ public class Main extends Application {
             aboutButton.setPrefWidth(300);
             aboutButton.setPrefHeight(60);
             aboutButton.setFont(javafx.scene.text.Font.font("Montserrat", 20));
-            aboutButton.setStyle(
-                "-fx-background-color: #439fd0; " +  
-                "-fx-border-color: black; " +
-                "-fx-border-width: 4; " +
-                "-fx-border-radius: 50; " +
-                "-fx-background-radius: 50; " +
-                "-fx-text-fill: black;"
-            );
+            aboutButton.getStyleClass().add("btn-about"); // Hover effect
             root.getChildren().add(aboutButton);
             
 
