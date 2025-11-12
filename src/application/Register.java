@@ -12,6 +12,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.text.Font;
+import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField;
 
 public class Register {	
 
@@ -102,6 +104,37 @@ public class Register {
         createButton.setPrefHeight(90);
         createButton.setFont(Fonts.loadSensaWild(40));
         root.getChildren().add(createButton);
+        
+        // Username text field
+        TextField usernameField = new TextField();
+        usernameField.setLayoutX(100);
+        usernameField.setLayoutY(400);
+        usernameField.setPrefWidth(600);
+        usernameField.setPrefHeight(60);
+        usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+        usernameField.setStyle("-fx-background-color: #ebebeb; " +
+                "-fx-border-color: black; " +
+                "-fx-border-radius: 15; " +
+                "-fx-background-radius: 15; " +
+                "-fx-text-fill: black;" +
+                "-fx-border-width: 4;");
+        root.getChildren().add(usernameField);
+
+        // Password text field
+        PasswordField passwordField = new PasswordField();
+        passwordField.setLayoutX(100);
+        passwordField.setLayoutY(580);
+        passwordField.setPrefWidth(600);
+        passwordField.setPrefHeight(60);
+        passwordField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+        passwordField.setStyle("-fx-background-color: #ebebeb; " +
+                "-fx-border-color: black; " +
+                "-fx-border-radius: 15; " +
+                "-fx-background-radius: 15; " +
+                "-fx-text-fill: black;" +
+                "-fx-border-width: 4;");
+        root.getChildren().add(passwordField);
+
 
         // Set up window properties
         primaryStage.setScene(scene);
