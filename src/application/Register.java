@@ -11,9 +11,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Font;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.animation.ScaleTransition;
+import javafx.util.Duration;
 
 public class Register {	
 
@@ -67,15 +71,40 @@ public class Register {
             "Master of Information Technology",
             "PhD Computer Science"
         };
-
         double startY = 360;
-        Font degreeFont = Font.font("Montserrat", 30); // Equal spacing using for loop for aesthetic
+        Font degreeFont = Font.font("Montserrat", 30); 
+
+        // Add toggles beside the names of degprog
+        ToggleGroup degreeGroup = new ToggleGroup();
         for (String degree : degrees) {
+            ToggleButton degBtn = new ToggleButton();
+            degBtn.getStyleClass().add("degree-btn");
+            degBtn.setToggleGroup(degreeGroup);
+            degBtn.setUserData(degree);
+            degBtn.setPrefWidth(46);
+            degBtn.setPrefHeight(46);
+            degBtn.setLayoutX(780);
+            degBtn.setLayoutY(startY - 6);
+
+            // effects when clicked
+            degBtn.setOnAction(e -> {
+                ScaleTransition st = new ScaleTransition(Duration.millis(140), degBtn);
+                st.setFromX(1.0);
+                st.setFromY(1.0);
+                st.setToX(0.86);
+                st.setToY(0.86);
+                st.setCycleCount(2);
+                st.setAutoReverse(true);
+                st.play();
+            });
+
+            // degree label
             Label deg = new Label(degree);
             deg.setFont(degreeFont);
-            deg.setLayoutX(830);
+            deg.setLayoutX(840);
             deg.setLayoutY(startY);
-            root.getChildren().add(deg);
+
+            root.getChildren().addAll(degBtn, deg);
             startY += 70; 
         }
 

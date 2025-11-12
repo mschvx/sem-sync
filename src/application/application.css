@@ -82,3 +82,27 @@
     -fx-background-color: linear-gradient(#7bd2f0, #4fb4dd);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
 }
+
+/* design for toggle buttons*/
+.toggle-button.degree-btn {
+    -fx-background-color: linear-gradient(#c9eef9, #7bd2f0);
+    -fx-background-radius: 50;
+    -fx-border-radius: 50;
+    -fx-border-color: rgba(0,0,0,0.6);
+    -fx-border-width: 3;
+    -fx-min-width: 46px;
+    -fx-min-height: 46px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0.5, 0, 2);
+}
+.toggle-button.degree-btn:hover {
+    -fx-background-color: linear-gradient(#9fe9fb, #69cde6);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.22), 8, 0.5, 0, 3);
+}
+.toggle-button.degree-btn:selected {
+    -fx-background-color: linear-gradient(#2a9ad0, #1b78a8);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.36), 10, 0.5, 0, 4), innershadow(gaussian, rgba(255,255,255,0.12), 6, 0.5, 0, 0);
+    -fx-border-color: rgba(0,0,0,0.8);
+}
