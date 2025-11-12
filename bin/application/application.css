@@ -22,6 +22,22 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
 }
 
+.button.btn-back {
+    -fx-background-color: linear-gradient(#439fd0, #318fb8);
+    -fx-text-fill: black;
+    -fx-border-color: black;
+    -fx-border-width: 4;
+    -fx-border-radius: 50;
+    -fx-background-radius: 50;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 6, 0.5, 0, 2);
+}
+.button.btn-back:hover {
+    -fx-background-color: linear-gradient(#7bd2f0, #4fb4dd);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
+}
+
+
 .button.btn-register {
     -fx-background-color: linear-gradient(#9ad1ee, #7fc9ea);
     -fx-text-fill: black;
@@ -48,6 +64,21 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 6, 0.5, 0, 2);
 }
 .button.btn-about:hover {
+    -fx-background-color: linear-gradient(#7bd2f0, #4fb4dd);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
+}
+
+.button.btn-create {
+    -fx-background-color: linear-gradient(#439fd0, #318fb8);
+    -fx-text-fill: black;
+    -fx-border-color: black;
+    -fx-border-width: 4;
+    -fx-border-radius: 50;
+    -fx-background-radius: 50;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 6, 0.5, 0, 2);
+}
+.button.btn-create:hover {
     -fx-background-color: linear-gradient(#7bd2f0, #4fb4dd);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
 }

@@ -10,16 +10,15 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.text.Font;
 
 public class Register {	
-	
-	public void showRegister(Stage primaryStage) {
+
+    public void showRegister(Stage primaryStage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);      
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
-        
-        // Load CSS
         scene.getStylesheets().add(Dashboard.class.getResource("application.css").toExternalForm());
         
         // Load background image
@@ -37,7 +36,7 @@ public class Register {
         registerLabel.setLayoutY(200);
         root.getChildren().add(registerLabel);
 
-        // Username texxt
+        // Username text
         Label usernameLabel = new Label("Username");
         Font usernameFont = Font.loadFont(Fonts.COMING_SOON, 60);
         usernameLabel.setFont(usernameFont);
@@ -52,7 +51,7 @@ public class Register {
         passwordLabel.setLayoutY(480);
         root.getChildren().add(passwordLabel);
 
-        // Select Degree Program label
+        // Select Degree Program text
         Label degreeLabel = new Label("Select Degree Program");
         degreeLabel.setFont(usernameFont);
         degreeLabel.setLayoutX(750);
@@ -68,17 +67,42 @@ public class Register {
         };
 
         double startY = 360;
-        Font degreeFont = Font.font("Montserrat", 30); // Same as main class for programs
+        Font degreeFont = Font.font("Montserrat", 30); // Equal spacing using for loop for aesthetic
         for (String degree : degrees) {
             Label deg = new Label(degree);
             deg.setFont(degreeFont);
-            deg.setLayoutX(830
-            		);
+            deg.setLayoutX(830);
             deg.setLayoutY(startY);
             root.getChildren().add(deg);
-            startY += 70; // spacing between options
+            startY += 70; 
         }
+
+        // Go Back Button
+        Button goBackButton = new Button("Go Back");
+        goBackButton.getStyleClass().add("btn-back");
+        goBackButton.setLayoutX(1220); 
+        goBackButton.setLayoutY(30);
+        goBackButton.setPrefWidth(250);
+        goBackButton.setPrefHeight(50);
+        goBackButton.setFont(Fonts.loadSensaWild(40));
+        root.getChildren().add(goBackButton);
+
+        // Go Back event handler
+        goBackButton.setOnAction(e -> {
+            Main main = new Main();
+            main.start(primaryStage); // open back to login
+        });
         
+        // Create Account button
+        Button createButton = new Button("Create Account");
+        createButton.getStyleClass().add("btn-create");
+        createButton.setLayoutX(768); // adjust as needed
+        createButton.setLayoutY(640);
+        createButton.setPrefWidth(600);
+        createButton.setPrefHeight(90);
+        createButton.setFont(Fonts.loadSensaWild(40));
+        root.getChildren().add(createButton);
+
         // Set up window properties
         primaryStage.setScene(scene);
         primaryStage.setTitle("SemSync - Register"); 
@@ -87,5 +111,5 @@ public class Register {
         primaryStage.setWidth(visualBounds.getWidth());
         primaryStage.setHeight(visualBounds.getHeight());
         primaryStage.show();
-	}
+    }
 }
