@@ -1,3 +1,5 @@
+// Register page
+
 package application;
 
 import javafx.geometry.Rectangle2D;
@@ -70,7 +72,8 @@ public class Register {
         for (String degree : degrees) {
             Label deg = new Label(degree);
             deg.setFont(degreeFont);
-            deg.setLayoutX(830);
+            deg.setLayoutX(830
+            		);
             deg.setLayoutY(startY);
             root.getChildren().add(deg);
             startY += 70; // spacing between options
