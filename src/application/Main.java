@@ -90,13 +90,13 @@ public class Main extends Application {
             Scene scene = new Scene(root, 1536, 864);
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
             primaryStage.setScene(scene);
-            primaryStage.setTitle("SemSync"); // Window title
+            primaryStage.setTitle("SemSync - Log In"); // Window title
             primaryStage.setMaximized(true); // Maximize window to fit screen
             primaryStage.show();
 
             // Reference resolution for scaling 
-            double baseWidth = 1536.0;
-            double baseHeight = 864.0;
+                double baseWidth = Sizing.BASE_WIDTH;
+                double baseHeight = Sizing.BASE_HEIGHT;
 
             // Scale based on screen
             content.scaleXProperty().bind(scene.widthProperty().divide(baseWidth));
@@ -332,6 +332,12 @@ public class Main extends Application {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+            });
+            
+            // Button click for register
+            registerButton.setOnAction(e -> {
+            	Register register = new Register();
+            	register.showRegister(primaryStage);
             });
 
         } catch (Exception e) {

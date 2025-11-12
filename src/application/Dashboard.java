@@ -15,7 +15,7 @@ public class Dashboard {
         
         scene.getStylesheets().add(Dashboard.class.getResource("application.css").toExternalForm());
         primaryStage.setScene(scene);
-        primaryStage.setTitle("SemSync"); // Window title
+        primaryStage.setTitle("SemSync - Dashboard"); // Window title
         primaryStage.setX(visualBounds.getMinX());
         primaryStage.setY(visualBounds.getMinY());
         primaryStage.setWidth(visualBounds.getWidth());
