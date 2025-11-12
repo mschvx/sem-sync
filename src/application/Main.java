@@ -34,46 +34,46 @@ public class Main extends Application {
     // Load method to get the data from CSV file
     // Doesn't properly work yet since wala pang database. (P.S naglagay muna ako ng placeholder for the mean time)
     private ObservableList<User> loadData(Path path) {
-	    ObservableList<User> list = FXCollections.<User>observableArrayList();
-	    Path folder = Paths.get("placeholder");
-	    Path file = folder.resolve("placeholder.csv");
+        ObservableList<User> list = FXCollections.<User>observableArrayList();
+        Path folder = Paths.get("placeholder");
+        Path file = folder.resolve("placeholder.csv");
 
-	    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
 
-	    if(!Files.exists(file)) {
-	        errorAlert.setHeaderText("Error!");
-	        errorAlert.setContentText("File not Found!");
-	        errorAlert.showAndWait();
-	        return list;
-	    }
+        if (!Files.exists(file)) {
+            errorAlert.setHeaderText("Error!");
+            errorAlert.setContentText("File not Found!");
+            errorAlert.showAndWait();
+            return list;
+        }
 
-	    try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-	        String line;
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
 
-	        while((line = reader.readLine()) != null) {
-	            line = line.trim();
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
 
-	            if(line.isEmpty()) {
-	                continue;
-	            }
+                if (line.isEmpty()) {
+                    continue;
+                }
 
-	        String[] parts = line.split(",");
+                String[] parts = line.split(",");
 
-	        String username = parts[0].trim();
-	        String password = parts[1].trim();
+                String username = parts[0].trim();
+                String password = parts[1].trim();
 
-	        list.add(new User(username,password));
-	    }
+                list.add(new User(username, password));
+            }
 
-	} catch (IOException e) {
-	    errorAlert.setHeaderText("Error");
-	    errorAlert.setContentText("Cannot Load.");
-	    errorAlert.showAndWait();
-	    return list;
-	    }
+        } catch (IOException e) {
+            errorAlert.setHeaderText("Error");
+            errorAlert.setContentText("Cannot Load.");
+            errorAlert.showAndWait();
+            return list;
+        }
 
-	    return list;
-	}
+        return list;
+    }
 
     // For animation:
     private Timeline planeTimeline; // animation reference
@@ -81,7 +81,12 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            Pane root = new Pane();
+            Pane root = new Pane(); // keeps CSS background fixed
+            root.getStyleClass().add("root"); // ensure background from CSS applies
+
+            Pane content = new Pane(); // holds everything that scales
+            root.getChildren().add(content);
+
             Scene scene = new Scene(root, 1536, 864);
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
             primaryStage.setScene(scene);
@@ -89,11 +94,20 @@ public class Main extends Application {
             primaryStage.setMaximized(true); // Maximize window to fit screen
             primaryStage.show();
 
+            // Reference resolution for scaling 
+            double baseWidth = 1536.0;
+            double baseHeight = 864.0;
+
+            // Scale based on screen
+            content.scaleXProperty().bind(scene.widthProperty().divide(baseWidth));
+            content.scaleYProperty().bind(scene.heightProperty().divide(baseHeight));
+
             // Load paper image
             ImageView background = new ImageView(new Image("file:Elements/LoginPaper.png"));
-            background.setFitWidth(1536);
-            background.setFitHeight(864);
-            root.getChildren().add(background);
+            background.setFitHeight(1000);
+            background.setLayoutX(0);
+            background.setLayoutY(-100);
+            content.getChildren().add(background);
 
             // Load sprites
             Image star1 = new Image("file:Elements/Star1.png");
@@ -109,14 +123,13 @@ public class Main extends Application {
             Image logo1 = new Image("file:Elements/Logo1.png");
             Image logo2 = new Image("file:Elements/Logo2.png");
 
-
             // Positioning animated logo
             ImageView logoView = new ImageView(logo1);
             logoView.setPreserveRatio(true);
             logoView.setFitWidth(940);
             logoView.setLayoutX(-40);
             logoView.setLayoutY(40);
-            root.getChildren().add(logoView);
+            content.getChildren().add(logoView);
 
             // Positioning some sprites
             ImageView starView1 = new ImageView(star1);
@@ -125,7 +138,7 @@ public class Main extends Application {
             starView1.setLayoutX(830);
             starView1.setLayoutY(10);
             starView1.setRotate(20);
-            root.getChildren().add(starView1);
+            content.getChildren().add(starView1);
 
             ImageView starView2 = new ImageView(star2);
             starView2.setPreserveRatio(true);
@@ -133,39 +146,38 @@ public class Main extends Application {
             starView2.setLayoutX(1400);
             starView2.setLayoutY(330);
             starView2.setRotate(170);
-            root.getChildren().add(starView2);
+            content.getChildren().add(starView2);
 
             ImageView spriteView = new ImageView(sprite1);
             spriteView.setPreserveRatio(true);
             spriteView.setFitWidth(1300);
             spriteView.setLayoutX(230);
             spriteView.setLayoutY(0);
-            root.getChildren().add(spriteView);
+            content.getChildren().add(spriteView);
 
             ImageView planeView = new ImageView(plane2);
             planeView.setPreserveRatio(true);
             planeView.setFitWidth(300);
             planeView.setLayoutX(650);
             planeView.setLayoutY(550);
-            root.getChildren().add(planeView);
-
+            content.getChildren().add(planeView);
 
             // Timeline to swap images every 0.5 seconds
             Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(0.5), event -> {
-                    if (logoView.getImage() == logo1 && starView1.getImage() == star1 && starView2.getImage() == star2 && spriteView.getImage() == sprite1) {
-                        logoView.setImage(logo2);
-                        starView1.setImage(star2);
-                        starView2.setImage(star1);
-                        spriteView.setImage(sprite2);
-                    } else {
-                        logoView.setImage(logo1);
-                        starView1.setImage(star1);
-                        starView2.setImage(star2);
-                        spriteView.setImage(sprite1);
-                    }
-                })
-            );
+                    new KeyFrame(Duration.seconds(0.5), event -> {
+                        if (logoView.getImage() == logo1 && starView1.getImage() == star1 && starView2.getImage() == star2
+                                && spriteView.getImage() == sprite1) {
+                            logoView.setImage(logo2);
+                            starView1.setImage(star2);
+                            starView2.setImage(star1);
+                            spriteView.setImage(sprite2);
+                        } else {
+                            logoView.setImage(logo1);
+                            starView1.setImage(star1);
+                            starView2.setImage(star2);
+                            spriteView.setImage(sprite1);
+                        }
+                    }));
             timeline.setCycleCount(Timeline.INDEFINITE); // Run forever while program is running
             timeline.play();
 
@@ -198,27 +210,25 @@ public class Main extends Application {
             tagline.setLayoutX(120);
             tagline.setLayoutY(550);
 
-            root.getChildren().add(tagline);
-            root.getChildren().add(username);
-            root.getChildren().add(password);
-            root.getChildren().add(welcome);
+            content.getChildren().add(tagline);
+            content.getChildren().add(username);
+            content.getChildren().add(password);
+            content.getChildren().add(welcome);
 
-         // Username text field
+            // Username text field
             TextField usernameField = new TextField();
             usernameField.setLayoutX(850);
             usernameField.setLayoutY(280);
             usernameField.setPrefWidth(600);
             usernameField.setPrefHeight(60);
             usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
-            usernameField.setStyle(
-                "-fx-background-color: #ebebeb; " +
-                "-fx-border-color: black; " +
-                "-fx-border-radius: 15; " +
-                "-fx-background-radius: 15; " +
-                "-fx-text-fill: black;" +
-                "-fx-border-width: 4; "
-            );
-            root.getChildren().add(usernameField);
+            usernameField.setStyle("-fx-background-color: #ebebeb; " +
+                    "-fx-border-color: black; " +
+                    "-fx-border-radius: 15; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-text-fill: black;" +
+                    "-fx-border-width: 4; ");
+            content.getChildren().add(usernameField);
 
             // Password text field
             PasswordField passwordField = new PasswordField();
@@ -227,15 +237,13 @@ public class Main extends Application {
             passwordField.setPrefWidth(600);
             passwordField.setPrefHeight(60);
             passwordField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
-            passwordField.setStyle(
-                "-fx-background-color: #ebebeb; " +
-                "-fx-border-color: black; " +
-                "-fx-border-radius: 15; " +
-                "-fx-background-radius: 15; " +
-                "-fx-text-fill: black;" +
-                "-fx-border-width: 4; "
-            );
-            root.getChildren().add(passwordField);
+            passwordField.setStyle("-fx-background-color: #ebebeb; " +
+                    "-fx-border-color: black; " +
+                    "-fx-border-radius: 15; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-text-fill: black;" +
+                    "-fx-border-width: 4; ");
+            content.getChildren().add(passwordField);
 
             // Button for Login
             Button loginButton = new Button("Login");
@@ -245,7 +253,7 @@ public class Main extends Application {
             loginButton.setPrefHeight(90);
             loginButton.setFont(Fonts.loadSensaWild(40));
             loginButton.getStyleClass().add("btn-login"); // Hover effect
-            root.getChildren().add(loginButton);
+            content.getChildren().add(loginButton);
 
             // Button for Create Account
             Button registerButton = new Button("Create Account");
@@ -255,7 +263,7 @@ public class Main extends Application {
             registerButton.setPrefHeight(60);
             registerButton.setFont(Fonts.loadSensaWild(40));
             registerButton.getStyleClass().add("btn-register"); // Hover effect
-            root.getChildren().add(registerButton);
+            content.getChildren().add(registerButton);
 
             // Button for About Sem Sync
             Button aboutButton = new Button("About Sem Sync");
@@ -265,7 +273,7 @@ public class Main extends Application {
             aboutButton.setPrefHeight(60);
             aboutButton.setFont(javafx.scene.text.Font.font("Montserrat", 20));
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
-            root.getChildren().add(aboutButton);
+            content.getChildren().add(aboutButton);
 
             // Event handlers for buttons
             // When hovering over login or register, start plane animation
@@ -306,7 +314,7 @@ public class Main extends Application {
                             }
                             break;
                         }
-                    }                  
+                    }
 
                     if (currentUser != null) {
                         Dashboard db = new Dashboard();
@@ -338,14 +346,13 @@ public class Main extends Application {
         }
         // else swap every 0.5 seconds as long as the mouse is on the button
         planeTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(0.5), event -> {
-                if (planeView.getImage() == plane1) {
-                    planeView.setImage(plane2);
-                } else {
-                    planeView.setImage(plane1);
-                }
-            })
-        );
+                new KeyFrame(Duration.seconds(0.5), event -> {
+                    if (planeView.getImage() == plane1) {
+                        planeView.setImage(plane2);
+                    } else {
+                        planeView.setImage(plane1);
+                    }
+                }));
         planeTimeline.setCycleCount(Timeline.INDEFINITE);
         planeTimeline.play();
     }
@@ -358,8 +365,7 @@ public class Main extends Application {
         }
     }
 
-
     public static void main(String[] args) {
         launch(args);
     }
-} 
+}
