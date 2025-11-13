@@ -16,10 +16,16 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Font;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.util.Duration;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
+
 
 public class Register {	
+    private javafx.animation.Timeline envelopeTimeline; // for envelope animation
 
     public void showRegister(Stage primaryStage) {
         Pane root = new Pane();
@@ -163,6 +169,57 @@ public class Register {
                 "-fx-text-fill: black;" +
                 "-fx-border-width: 4;");
         root.getChildren().add(passwordField);
+        
+        // Load sprites
+        Image envelope1 = new Image("file:Elements/Envelope1.png");
+        Image envelope2 = new Image("file:Elements/Envelope2.png");
+        
+        // Envelope
+        ImageView envelopeView = new ImageView(envelope1);
+        envelopeView.setPreserveRatio(true);
+        envelopeView.setFitWidth(200);
+        envelopeView.setLayoutX(1250);
+        envelopeView.setLayoutY(520);
+        envelopeView.setRotate(20);
+    // shadow for envelope
+    DropShadow envelopeShadow = new DropShadow();
+    envelopeShadow.setRadius(10);
+    envelopeShadow.setOffsetX(4);
+    envelopeShadow.setOffsetY(4);
+    envelopeShadow.setColor(Color.rgb(0, 0, 0, 0.35));
+    envelopeView.setEffect(envelopeShadow);
+        root.getChildren().add(envelopeView);
+        
+
+        // Start envelope animation when hovering over the create button
+        createButton.setOnMouseEntered(e -> startEnvelopeAnimation(envelopeView, envelope1, envelope2));
+
+        // Stop envelope animation and reset when mouse exits
+        createButton.setOnMouseExited(e -> stopEnvelopeAnimation(envelopeView, envelope1));
+
+        // Load PC sprites 
+        Image pc1 = new Image("file:Elements/PC1.png");
+        Image pc2 = new Image("file:Elements/PC2.png");
+
+        ImageView pcView = new ImageView(pc1);
+        pcView.setPreserveRatio(true);
+        pcView.setFitWidth(250);
+        pcView.setLayoutX(30);
+        pcView.setLayoutY(0);
+        pcView.setRotate(-5);
+        root.getChildren().add(pcView);
+
+        // Timeline to swap every 0.5 sec.
+        Timeline pcTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0.5), event -> {
+                    if (pcView.getImage() == pc1) {
+                        pcView.setImage(pc2);
+                    } else {
+                        pcView.setImage(pc1);
+                    }
+                }));
+        pcTimeline.setCycleCount(Timeline.INDEFINITE);
+        pcTimeline.play();
 
 
         // Set up window properties
@@ -173,5 +230,30 @@ public class Register {
         primaryStage.setWidth(visualBounds.getWidth());
         primaryStage.setHeight(visualBounds.getHeight());
         primaryStage.show();
+    }
+
+    // Method to animate the envelope doodle while hovering
+    private void startEnvelopeAnimation(ImageView envelopeView, Image envelope1, Image envelope2) {
+        if (envelopeTimeline != null && envelopeTimeline.getStatus() == Timeline.Status.RUNNING) {
+            return; // already animating
+        }
+        envelopeTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0.5), event -> {
+                    if (envelopeView.getImage() == envelope1) {
+                        envelopeView.setImage(envelope2);
+                    } else {
+                        envelopeView.setImage(envelope1);
+                    }
+                }));
+        envelopeTimeline.setCycleCount(Timeline.INDEFINITE);
+        envelopeTimeline.play();
+    }
+
+    // Method to stop animating the envelope and reset
+    private void stopEnvelopeAnimation(ImageView envelopeView, Image defaultImage) {
+        if (envelopeTimeline != null) {
+            envelopeTimeline.stop();
+            envelopeView.setImage(defaultImage); // reset to default
+        }
     }
 }
