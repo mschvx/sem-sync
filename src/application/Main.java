@@ -275,6 +275,12 @@ public class Main extends Application {
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             content.getChildren().add(aboutButton);
 
+            // Go to about page if clicked
+            aboutButton.setOnAction(e -> {
+                About about = new About();
+                about.showAbout(primaryStage);
+            });
+
             // Event handlers for buttons
             // When hovering over login or register, start plane animation
             loginButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
