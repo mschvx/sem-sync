@@ -29,6 +29,9 @@ import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
+
 
 public class Register {	
 	
@@ -294,5 +297,29 @@ public class Register {
     // method for detecting special character inputs
     private boolean isAlphanumeric(String text) {
     	return text.matches("^[A-Za-z0-9]+$");
+
+    // Method to animate the envelope doodle while hovering
+    private void startEnvelopeAnimation(ImageView envelopeView, Image envelope1, Image envelope2) {
+        if (envelopeTimeline != null && envelopeTimeline.getStatus() == Timeline.Status.RUNNING) {
+            return; // already animating
+        }
+        envelopeTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0.5), event -> {
+                    if (envelopeView.getImage() == envelope1) {
+                        envelopeView.setImage(envelope2);
+                    } else {
+                        envelopeView.setImage(envelope1);
+                    }
+                }));
+        envelopeTimeline.setCycleCount(Timeline.INDEFINITE);
+        envelopeTimeline.play();
+    }
+
+    // Method to stop animating the envelope and reset
+    private void stopEnvelopeAnimation(ImageView envelopeView, Image defaultImage) {
+        if (envelopeTimeline != null) {
+            envelopeTimeline.stop();
+            envelopeView.setImage(defaultImage); // reset to default
+        }
     }
 }

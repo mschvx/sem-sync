@@ -275,6 +275,12 @@ public class Main extends Application {
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             content.getChildren().add(aboutButton);
 
+            // Go to about page if clicked
+            aboutButton.setOnAction(e -> {
+                About about = new About();
+                about.showAbout(primaryStage);
+            });
+
             // Event handlers for buttons
             // When hovering over login or register, start plane animation
             loginButton.setOnMouseEntered(e -> startPlaneAnimation(planeView, plane1, plane2));
@@ -291,12 +297,30 @@ public class Main extends Application {
             // Doesn't properly work yet since wala pang database
             loginButton.setOnAction(e -> {
                 try {
-                    String uname = usernameField.getText().trim();
-                    String pass = passwordField.getText().trim();
+                    String uname = usernameField.getText();
+                    String pass = passwordField.getText();
                     User currentUser = null;
                     boolean usernameFound = false;
 
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    
+                    for(char c : uname.toCharArray()) {
+                    	if(!Character.isLetterOrDigit(c)) {
+                            errorAlert.setHeaderText("Error!");
+                            errorAlert.setContentText("Special characters are not allowed!");
+                            errorAlert.showAndWait();
+                            return;                   		
+                    	}
+                    }
+                    
+                    for(char c : pass.toCharArray()) {
+                    	if(!Character.isLetterOrDigit(c)) {
+                            errorAlert.setHeaderText("Error!");
+                            errorAlert.setContentText("Special characters are not allowed!");
+                            errorAlert.showAndWait();
+                            return;                   		
+                    	}
+                    }
 
                     if (data == null) {
                         errorAlert.setHeaderText("Error!");
