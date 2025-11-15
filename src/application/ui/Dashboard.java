@@ -32,7 +32,7 @@ public class Dashboard {
         // Determine greeting from degree
         String degreeCode = (user != null) ? user.getDegree() : null;
         DegreeProgram program = DegreeLookup.fromCode(degreeCode);
-        String shortName = (program != null) ? program.getShortName() : "";
+        String shortName = (program != null) ? program.getCourseCode() : "";
 
         String greeting = "Hello" + (shortName.isEmpty() ? "" : " " + shortName) + ",";
 

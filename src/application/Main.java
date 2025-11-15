@@ -40,7 +40,7 @@ public class Main extends Application {
     private ObservableList<User> loadData(Path path) {
         ObservableList<User> list = FXCollections.<User>observableArrayList();
         Path folder = Paths.get("Database");
-        Path file = folder.resolve("Users.java");
+        Path file = folder.resolve("users.csv");
 
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
 
@@ -303,7 +303,6 @@ public class Main extends Application {
             ObservableList<User> data = loadData(path);
 
             // Button Click for Login
-            // Doesn't properly work yet since wala pang database
             loginButton.setOnAction(e -> {
                 try {
                     String uname = usernameField.getText().trim();
@@ -320,9 +319,7 @@ public class Main extends Application {
                         return;
                     }
 
-                    // Do not validate special characters here — login accepts any chars;
-                    // invalid credentials are reported as a single generic message below.
-
+    
                     if (data == null) {
                         errorAlert.setHeaderText("Error!");
                         errorAlert.setContentText("Could not load user data.");

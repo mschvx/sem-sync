@@ -254,15 +254,15 @@ public class Register {
             
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             
-            // Blank inputs first
+
+            // Username and password must be provided
             if (uname.isBlank() || pass.isEmpty()) {
                 errorAlert.setHeaderText("Missing Fields!");
                 errorAlert.setContentText("Please fill in both username and password.");
                 errorAlert.showAndWait();
                 return;
             }
-
-            // Special characters
+            // Username contains only letters and numbers
             if (!isAlphanumeric(uname)) {
                 errorAlert.setHeaderText("Invalid Username");
                 errorAlert.setContentText("Username can only contain letters and numbers.\nNo spaces or special characters allowed.");
@@ -270,6 +270,7 @@ public class Register {
                 return;
             }
 
+            // Password contains only letters and numbers
             if (!isAlphanumeric(pass)) {
                 errorAlert.setHeaderText("Invalid Password");
                 errorAlert.setContentText("Password can only contain letters and numbers.\nNo spaces or special characters allowed.");
@@ -277,6 +278,7 @@ public class Register {
                 return;
             }
 
+            // a degree program must be selected
             if (selectedDegree == null) {
                 errorAlert.setHeaderText("Missing Degree Program!");
                 errorAlert.setContentText("Please select a degree program.");
@@ -284,6 +286,7 @@ public class Register {
                 return;
             }
 
+            // username is unique
             for (User user : data) {
                 if (user.getUsername().equals(uname)) {
                     usernameFound = true;
@@ -297,9 +300,9 @@ public class Register {
                 return;
             }
 
-            // Append new user to users file (folder renamed)
+            // Append new user to users file 
                 Path folder = Paths.get("Database");
-                Path file = folder.resolve("Users.java");
+                Path file = folder.resolve("users.csv");
             try {
                 Files.createDirectories(folder);
                 ToggleButton selectedDegreeBtn = (ToggleButton) degreeGroup.getSelectedToggle();
