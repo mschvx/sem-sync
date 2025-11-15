@@ -1,5 +1,7 @@
-package application;
+package application.ui;
 
+import application.Fonts;
+import application.Main;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -21,13 +23,14 @@ import javafx.animation.ScaleTransition;
 import javafx.util.Duration;
 import javafx.scene.input.MouseEvent;
 
-public class Credits {
+public class Walkthrough {
 
-    // CREDITS WINDOW
-    public void showCredits(Stage primaryStage) {
+    // WALKTHROUGH PAGE
+    public void showWalkthrough(Stage primaryStage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
-        scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+
 
     // Notebook image
     Image detailsImage = new Image("file:Elements/Details.png", false);
@@ -65,7 +68,7 @@ public class Credits {
     cBlue.setOnMouseExited(e -> cBlue.setEffect(ds));
     cRed.setOnMouseExited(e -> cRed.setEffect(ds));
 
-    // hover effefcts
+    // hover effects
     cYellow.setCursor(Cursor.HAND);
     cBlue.setCursor(Cursor.HAND);
     cRed.setCursor(Cursor.HAND);
@@ -98,13 +101,14 @@ public class Credits {
         new Credits().showCredits(primaryStage);
     });
 
-    // Title
-    Label title = new Label("CREDITS");
+    // Title 
+    Label title = new Label("VIDEO WALKTHROUGH");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
     title.setLayoutX(220);
     title.setLayoutY(100);
     title.setRotate(3);
+
 
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
@@ -121,7 +125,7 @@ public class Credits {
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setScene(scene);
-        primaryStage.setTitle("SemSync - Credits");
+        primaryStage.setTitle("SemSync - Walkthrough");
         primaryStage.setX(visualBounds.getMinX());
         primaryStage.setY(visualBounds.getMinY());
         primaryStage.setWidth(visualBounds.getWidth());

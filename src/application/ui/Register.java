@@ -1,7 +1,8 @@
-// Register page
+package application.ui;
 
-package application;
-
+import application.Fonts;
+import application.Main;
+import application.models.User;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -19,29 +20,33 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
 
 
-public class Register {	
-	
-	Path path = Path.of(System.getProperty("user.dir"));
-	
-	// used for validating if user created does not already exist
-	private ObservableList<User> loadData(Path path) {
+public class Register {
+
+    private Timeline envelopeTimeline; // <- declare this at class level
+
+    Path path = Path.of(System.getProperty("user.dir"));
+
+    // used for validating if user created does not already exist
+    private ObservableList<User> loadData(Path path) {
         ObservableList<User> list = FXCollections.<User>observableArrayList();
-        Path folder = Paths.get("placeholder");
-        Path file = folder.resolve("placeholder.csv");
+        Path folder = Paths.get("Database");
+        Path file = folder.resolve("Users.java");
 
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
 
@@ -67,7 +72,12 @@ public class Register {
                 String username = parts[0].trim();
                 String password = parts[1].trim();
 
-                list.add(new User(username, password));
+                String degree = "";
+                if (parts.length >= 3) {
+                    degree = parts[2].trim();
+                }
+
+                list.add(new User(username, password, degree));
             }
 
         } catch (IOException e) {
@@ -82,10 +92,10 @@ public class Register {
 
     public void showRegister(Stage primaryStage) {
         Pane root = new Pane();
-        Scene scene = new Scene(root, 1536, 864);      
+        Scene scene = new Scene(root, 1536, 864);
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
-        scene.getStylesheets().add(Dashboard.class.getResource("application.css").toExternalForm());
-        
+        scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+
         // Load background image
         ImageView background = new ImageView(new Image("file:Elements/RegisterPaper.png"));
         background.setFitHeight(1000);
@@ -95,7 +105,7 @@ public class Register {
 
         // Register text
         Label registerLabel = new Label("REGISTER");
-        Font registerFont = Font.loadFont(Fonts.SENSA_SERIF, 120); 
+        Font registerFont = Font.loadFont(Fonts.SENSA_SERIF, 120);
         registerLabel.setFont(registerFont);
         registerLabel.setLayoutX(150);
         registerLabel.setLayoutY(200);
@@ -124,22 +134,31 @@ public class Register {
         root.getChildren().add(degreeLabel);
 
         // Degree program options
-        String[] degrees = {
+        String[] degreeNames = {
             "BS Computer Science",
             "MS Computer Science",
             "Master of Information Technology",
             "PhD Computer Science"
         };
+
+        String[] degreeCodes = {
+            "BachelorCS",
+            "MasterCS",
+            "MasterIT",
+            "PHDCS"
+        };
         double startY = 360;
-        Font degreeFont = Font.font("Montserrat", 30); 
+        Font degreeFont = Font.font("Montserrat", 30);
 
         // Add toggles beside the names of degprog
         ToggleGroup degreeGroup = new ToggleGroup();
-        for (String degree : degrees) {
+        for (int i = 0; i < degreeNames.length; i++) {
+            String degree = degreeNames[i];
+            String code = degreeCodes[i];
             ToggleButton degBtn = new ToggleButton();
             degBtn.getStyleClass().add("degree-btn");
             degBtn.setToggleGroup(degreeGroup);
-            degBtn.setUserData(degree);
+            degBtn.setUserData(code);
             degBtn.setPrefWidth(46);
             degBtn.setPrefHeight(46);
             degBtn.setLayoutX(780);
@@ -164,13 +183,13 @@ public class Register {
             deg.setLayoutY(startY);
 
             root.getChildren().addAll(degBtn, deg);
-            startY += 70; 
+            startY += 70;
         }
 
         // Go Back Button
         Button goBackButton = new Button("Go Back");
         goBackButton.getStyleClass().add("btn-back");
-        goBackButton.setLayoutX(1220); 
+        goBackButton.setLayoutX(1220);
         goBackButton.setLayoutY(30);
         goBackButton.setPrefWidth(250);
         goBackButton.setPrefHeight(50);
@@ -228,60 +247,97 @@ public class Register {
         
         // logic for creating account
         createButton.setOnAction(e -> {
-        	String uname = usernameField.getText().trim();
-        	String pass = passwordField.getText().trim();
-        	ToggleButton selectedDegree = (ToggleButton) degreeGroup.getSelectedToggle();
-        	boolean usernameFound = false;
-        	
-        	Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-        	
-        	for (User user : data) {
-        		if (user.getUsername().equals(uname)) {
-        			usernameFound = true;
-        			break;
-        		}
-        	}
-        	// user already exists
-        	if (usernameFound = true) {
-        		errorAlert.setHeaderText("Invalid Username");
-        		errorAlert.setContentText("This username is already taken. Please choose another one.");
-        		errorAlert.showAndWait();
-        	}
-        	// blank inputs
-        	else if (uname.isBlank() || pass.isEmpty()) {
-        		errorAlert.setHeaderText("Missing Fields!");
-        		errorAlert.setContentText("Please fill in both username and password.");
-        		errorAlert.showAndWait();
-        	}
-        	else if (selectedDegree == null) {
-        		errorAlert.setHeaderText("Missing Degree Program!");
-        		errorAlert.setContentText("Please select a degree program.");
-        		errorAlert.showAndWait();
-        	}
-        	// special characters
-        	else if (!isAlphanumeric(uname)) {
-        		errorAlert.setHeaderText("Invalid Username");
-        		errorAlert.setContentText("Username can only contain letters and numbers.\nNo spaces or special characters allowed.");
-        		errorAlert.showAndWait();
-        	}
-        	else if (!isAlphanumeric(pass)) {
-        		errorAlert.setHeaderText("Invalid Paddword");
-        		errorAlert.setContentText("Password can only contain letters and numbers.\\nNo spaces or special characters allowed.");
-        		errorAlert.showAndWait();
-        	}
-        	else {
-        		Alert success = new Alert(Alert.AlertType.INFORMATION);
-        		success.setTitle("Account Created");
-        		success.setHeaderText(null);
-        		success.setContentText("Account created. Now go log in!");
-        		success.showAndWait();
-        		
-        		// go back to log in page
-        		Main main = new Main();
-        		main.start(primaryStage);
-        	}
+            String uname = usernameField.getText().trim();
+            String pass = passwordField.getText().trim();
+            ToggleButton selectedDegree = (ToggleButton) degreeGroup.getSelectedToggle();
+            boolean usernameFound = false;
+            
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            
+            // Blank inputs first
+            if (uname.isBlank() || pass.isEmpty()) {
+                errorAlert.setHeaderText("Missing Fields!");
+                errorAlert.setContentText("Please fill in both username and password.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            // Special characters
+            if (!isAlphanumeric(uname)) {
+                errorAlert.setHeaderText("Invalid Username");
+                errorAlert.setContentText("Username can only contain letters and numbers.\nNo spaces or special characters allowed.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            if (!isAlphanumeric(pass)) {
+                errorAlert.setHeaderText("Invalid Password");
+                errorAlert.setContentText("Password can only contain letters and numbers.\nNo spaces or special characters allowed.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            if (selectedDegree == null) {
+                errorAlert.setHeaderText("Missing Degree Program!");
+                errorAlert.setContentText("Please select a degree program.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            for (User user : data) {
+                if (user.getUsername().equals(uname)) {
+                    usernameFound = true;
+                    break;
+                }
+            }
+            if (usernameFound) {
+                errorAlert.setHeaderText("Invalid Username");
+                errorAlert.setContentText("This username is already taken. Please choose another one.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            // Append new user to users file (folder renamed)
+                Path folder = Paths.get("Database");
+                Path file = folder.resolve("Users.java");
+            try {
+                Files.createDirectories(folder);
+                ToggleButton selectedDegreeBtn = (ToggleButton) degreeGroup.getSelectedToggle();
+                String degreeCode = "";
+                if (selectedDegreeBtn != null && selectedDegreeBtn.getUserData() != null) {
+                    degreeCode = selectedDegreeBtn.getUserData().toString();
+                }
+                try (BufferedWriter writer = Files.newBufferedWriter(file, java.nio.charset.StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+                    writer.write(uname + "," + pass + "," + degreeCode);
+                    writer.newLine();
+                }
+            } catch (IOException ioEx) {
+                errorAlert.setHeaderText("Error");
+                errorAlert.setContentText("Unable to save account. Please try again.");
+                errorAlert.showAndWait();
+                return;
+            }
+
+            // update in-memory list so user can login immediately
+            // use degreeCode from the selected button
+            String degreeCodeForMemory = "";
+            ToggleButton selectedDegreeBtn = (ToggleButton) degreeGroup.getSelectedToggle();
+            if (selectedDegreeBtn != null && selectedDegreeBtn.getUserData() != null) {
+                degreeCodeForMemory = selectedDegreeBtn.getUserData().toString();
+            }
+            data.add(new User(uname, pass, degreeCodeForMemory));
+
+            Alert success = new Alert(Alert.AlertType.INFORMATION);
+            success.setTitle("Account Created");
+            success.setHeaderText(null);
+            success.setContentText("Account created. Now go log in!");
+            success.showAndWait();
+
+            // go back to log in page
+            Main main = new Main();
+            main.start(primaryStage);
         });
-       
+
 
         // Set up window properties
         primaryStage.setScene(scene);
@@ -296,7 +352,8 @@ public class Register {
     
     // method for detecting special character inputs
     private boolean isAlphanumeric(String text) {
-    	return text.matches("^[A-Za-z0-9]+$");
+        return text.matches("^[A-Za-z0-9]+$");
+    }
 
     // Method to animate the envelope doodle while hovering
     private void startEnvelopeAnimation(ImageView envelopeView, Image envelope1, Image envelope2) {

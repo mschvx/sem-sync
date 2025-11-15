@@ -1,5 +1,7 @@
-package application;
+package application.ui;
 
+import application.Fonts;
+import application.Main;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -21,15 +23,15 @@ import javafx.animation.ScaleTransition;
 import javafx.util.Duration;
 import javafx.scene.input.MouseEvent;
 
-public class Walkthrough {
+public class About {
 
-    // WALKTHROUGH PAGE
-    public void showWalkthrough(Stage primaryStage) {
+    // ABOUT WINDOW
+    public void showAbout(Stage primaryStage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
-        scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+        scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
 
-
+       
     // Notebook image
     Image detailsImage = new Image("file:Elements/Details.png", false);
     ImageView iv = new ImageView(detailsImage);
@@ -37,16 +39,17 @@ public class Walkthrough {
     iv.setFitHeight(900); 
     iv.setLayoutX(20);
     iv.setLayoutY(20);
-
+    
     // 3D EFFECT FOR THREE BUTTONS
     RadialGradient yellowGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
         new Stop(0, Color.web("#fff7d1")), new Stop(0.5, Color.web("#f4c842")), new Stop(1, Color.web("#d69a2b")));
     RadialGradient blueGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
         new Stop(0, Color.web("#eaf8ff")), new Stop(0.5, Color.web("#57b7e3")), new Stop(1, Color.web("#2a95c5")));
-    RadialGradient redGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
-        new Stop(0, Color.web("#ffdede")), new Stop(0.5, Color.web("#b23b3b")), new Stop(1, Color.web("#7f2626")));
+    
+        // 3 BUTTONS (THE SCRAPBOOK BOOKMARK STYLE)
+        RadialGradient redGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.web("#ffdede")), new Stop(0.5, Color.web("#b23b3b")), new Stop(1, Color.web("#7f2626")));
 
-    // 3 BUTTONS (THE SCRAPBOOK BOOKMARK STYLE)
     Circle cYellow = new Circle(150, 180, 72);
     cYellow.setFill(yellowGrad);
     Circle cBlue = new Circle(140, 300, 72);
@@ -99,13 +102,27 @@ public class Walkthrough {
         new Credits().showCredits(primaryStage);
     });
 
-    // Title 
-    Label title = new Label("VIDEO WALKTHROUGH");
+    // Title
+    Label title = new Label("ABOUT SEM SYNC");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
     title.setLayoutX(220);
     title.setLayoutY(100);
     title.setRotate(3);
+
+    // Body text 
+    String bodyText = "Sem Sync is a course registration planner designed to help students organize their semester schedules with ease.\n\n" +
+        "It lets students browse available courses, add them to their planner, and instantly see their schedules highlighted on a weekly calendar for quick visualization.\n\n" +
+        "The app makes managing your courses simple and efficient. Whether you are adding, editing, or reviewing your planned subjects, Sem Sync provides clear prompts and easy-to-use tools to guide you every step of the way.";
+
+    Label body = new Label(bodyText);
+    body.setFont(Font.font("Montserrat", 24));
+    body.setWrapText(true);
+    body.setMaxWidth(570);
+    body.setLayoutX(200);
+    body.setLayoutY(192);
+    body.setRotate(3);
+    body.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
 
 
 
@@ -119,11 +136,12 @@ public class Walkthrough {
     hRed.setOpacity(0.26);
     hRed.setMouseTransparent(true);
 
-    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title);
+    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title, body);
 
-    Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+    // basic window properties
+        Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setScene(scene);
-        primaryStage.setTitle("SemSync - Walkthrough");
+        primaryStage.setTitle("SemSync - About");
         primaryStage.setX(visualBounds.getMinX());
         primaryStage.setY(visualBounds.getMinY());
         primaryStage.setWidth(visualBounds.getWidth());

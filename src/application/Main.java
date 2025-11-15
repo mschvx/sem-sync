@@ -26,6 +26,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import application.models.User;
+import application.ui.Register;
+import application.ui.Dashboard;
+import application.ui.About;
 
 public class Main extends Application {
 
@@ -35,8 +39,8 @@ public class Main extends Application {
     // Doesn't properly work yet since wala pang database. (P.S naglagay muna ako ng placeholder for the mean time)
     private ObservableList<User> loadData(Path path) {
         ObservableList<User> list = FXCollections.<User>observableArrayList();
-        Path folder = Paths.get("placeholder");
-        Path file = folder.resolve("placeholder.csv");
+        Path folder = Paths.get("Database");
+        Path file = folder.resolve("Users.java");
 
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
 
@@ -62,7 +66,12 @@ public class Main extends Application {
                 String username = parts[0].trim();
                 String password = parts[1].trim();
 
-                list.add(new User(username, password));
+                String degree = "";
+                if (parts.length >= 3) {
+                    degree = parts[2].trim();
+                }
+
+                list.add(new User(username, password, degree));
             }
 
         } catch (IOException e) {
@@ -297,42 +306,32 @@ public class Main extends Application {
             // Doesn't properly work yet since wala pang database
             loginButton.setOnAction(e -> {
                 try {
-                    String uname = usernameField.getText();
-                    String pass = passwordField.getText();
+                    String uname = usernameField.getText().trim();
+                    String pass = passwordField.getText().trim();
                     User currentUser = null;
-                    boolean usernameFound = false;
 
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                    
-                    for(char c : uname.toCharArray()) {
-                    	if(!Character.isLetterOrDigit(c)) {
-                            errorAlert.setHeaderText("Error!");
-                            errorAlert.setContentText("Special characters are not allowed!");
-                            errorAlert.showAndWait();
-                            return;                   		
-                    	}
+
+                    // Blank inputs
+                    if (uname.isBlank() || pass.isEmpty()) {
+                        errorAlert.setHeaderText("Missing Fields!");
+                        errorAlert.setContentText("Please enter both username and password.");
+                        errorAlert.showAndWait();
+                        return;
                     }
-                    
-                    for(char c : pass.toCharArray()) {
-                    	if(!Character.isLetterOrDigit(c)) {
-                            errorAlert.setHeaderText("Error!");
-                            errorAlert.setContentText("Special characters are not allowed!");
-                            errorAlert.showAndWait();
-                            return;                   		
-                    	}
-                    }
+
+                    // Do not validate special characters here — login accepts any chars;
+                    // invalid credentials are reported as a single generic message below.
 
                     if (data == null) {
                         errorAlert.setHeaderText("Error!");
-                        errorAlert.setContentText("Could not load data!");
+                        errorAlert.setContentText("Could not load user data.");
                         errorAlert.showAndWait();
                         return;
                     }
 
                     for (User user : data) {
                         if (user.getUsername().equals(uname)) {
-                            usernameFound = true;
-
                             if (user.getPassword().equals(pass)) {
                                 currentUser = user;
                             }
@@ -342,14 +341,10 @@ public class Main extends Application {
 
                     if (currentUser != null) {
                         Dashboard db = new Dashboard();
-                        db.showDashboard(primaryStage);
-                    } else if (usernameFound) {
-                        errorAlert.setHeaderText("Login Failed!");
-                        errorAlert.setContentText("Wrong Password!");
-                        errorAlert.showAndWait();
+                        db.showDashboard(primaryStage, currentUser);
                     } else {
                         errorAlert.setHeaderText("Login Failed!");
-                        errorAlert.setContentText("Account does not exist!");
+                        errorAlert.setContentText("Wrong account details.");
                         errorAlert.showAndWait();
                     }
 
