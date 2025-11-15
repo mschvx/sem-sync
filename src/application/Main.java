@@ -22,21 +22,22 @@ import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import ui.About;
+import ui.Dashboard;
+import ui.Register;
+import users.User;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import application.models.User;
-import application.ui.Register;
-import application.ui.Dashboard;
-import application.ui.About;
 
 public class Main extends Application {
 
     Path path = Path.of(System.getProperty("user.dir"));
 
+    // Track consecutive wrong login attempts
+    private int wrongAttempts = 0;
     // Load method to get the data from CSV file
-    // Doesn't properly work yet since wala pang database. (P.S naglagay muna ako ng placeholder for the mean time)
     private ObservableList<User> loadData(Path path) {
         ObservableList<User> list = FXCollections.<User>observableArrayList();
         Path folder = Paths.get("Database");
@@ -87,6 +88,57 @@ public class Main extends Application {
     // For animation:
     private Timeline planeTimeline; // animation reference
 
+    // On wrong attempts effects
+    private void registerWrongAttempt(Pane root, Label tagline) {
+        wrongAttempts++;
+
+        // Find existing overlay ImageView by id (if any)
+        javafx.scene.image.ImageView overlay = null;
+        for (javafx.scene.Node n : root.getChildren()) {
+            if (n instanceof javafx.scene.image.ImageView && "loginErrorOverlay".equals(n.getId())) {
+                overlay = (javafx.scene.image.ImageView) n;
+                break;
+            }
+        }
+
+        try {
+            if (wrongAttempts == 1) {
+                // First wrong attempt: change root background to BG1
+                root.setStyle("-fx-background-image: url(\"file:Elements/yourenotsupposedtobehere/BG1.png\"); -fx-background-size: cover; -fx-background-repeat: no-repeat; -fx-background-position: center;");
+                if (overlay != null) root.getChildren().remove(overlay);
+
+            } else if (wrongAttempts == 2) {
+                // Second wrong attempt: change root background to BG2
+                root.setStyle("-fx-background-image: url(\"file:Elements/yourenotsupposedtobehere/BG2.png\"); -fx-background-size: cover; -fx-background-repeat: no-repeat; -fx-background-position: center;");
+                if (overlay != null) root.getChildren().remove(overlay);
+
+            } else if (wrongAttempts == 3) {
+                // Third wrong attempt: Add a splatter overlay on top of the root
+                if (overlay == null) {
+                    overlay = new javafx.scene.image.ImageView();
+                    overlay.setId("loginErrorOverlay");
+                    overlay.setMouseTransparent(true);
+                    overlay.setPreserveRatio(false);
+                    overlay.fitWidthProperty().bind(root.widthProperty());
+                    overlay.fitHeightProperty().bind(root.heightProperty());
+                    root.getChildren().add(overlay);
+                }
+
+                overlay.setImage(new javafx.scene.image.Image("file:Elements/yourenotsupposedtobehere/Splatter.png"));
+                overlay.toFront();
+                // replace the tagline text 
+                if (tagline != null) {
+                    tagline.setText("YOU’RE MAKING THIS DIFFICULT FOR YOURSELF");
+                    tagline.setLayoutX(70);
+                    tagline.setFont(Font.loadFont(Fonts.COMING_SOON, 30));
+                    tagline.setStyle("-fx-text-fill: black; -fx-font-weight: bold;");
+                    tagline.setVisible(true);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -159,9 +211,10 @@ public class Main extends Application {
 
             ImageView spriteView = new ImageView(sprite1);
             spriteView.setPreserveRatio(true);
-            spriteView.setFitWidth(1300);
-            spriteView.setLayoutX(230);
-            spriteView.setLayoutY(0);
+            spriteView.setFitWidth(180);
+            spriteView.setLayoutX(1360);
+            spriteView.setLayoutY(-0);
+            spriteView.setRotate(70);
             content.getChildren().add(spriteView);
 
             ImageView planeView = new ImageView(plane2);
@@ -175,17 +228,20 @@ public class Main extends Application {
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(0.5), event -> {
                         if (logoView.getImage() == logo1 && starView1.getImage() == star1 && starView2.getImage() == star2
-                                && spriteView.getImage() == sprite1) {
-                            logoView.setImage(logo2);
-                            starView1.setImage(star2);
-                            starView2.setImage(star1);
-                            spriteView.setImage(sprite2);
-                        } else {
-                            logoView.setImage(logo1);
-                            starView1.setImage(star1);
-                            starView2.setImage(star2);
-                            spriteView.setImage(sprite1);
-                        }
+                                    && spriteView.getImage() == sprite1) {
+                                logoView.setImage(logo2);
+                                starView1.setImage(star2);
+                                starView2.setImage(star1);
+                                spriteView.setImage(sprite2);
+                                spriteView.setRotate(75);
+                            } else {
+                                logoView.setImage(logo1);
+                                starView1.setImage(star1);
+                                starView2.setImage(star2);
+                                spriteView.setImage(sprite1);
+                                // restore default rotation
+                                spriteView.setRotate(70);
+                            }
                     }));
             timeline.setCycleCount(Timeline.INDEFINITE); // Run forever while program is running
             timeline.play();
@@ -212,7 +268,8 @@ public class Main extends Application {
             password.setLayoutX(850);
             password.setLayoutY(370);
 
-            Label tagline = new Label("Scheduling has never been this easy!");
+            final String defaultTagline = "Scheduling has never been this easy!";
+            Label tagline = new Label(defaultTagline);
             Font taglineFont = Font.loadFont(Fonts.COMING_SOON, 30);
             tagline.setFont(taglineFont);
             tagline.setStyle("-fx-text-fill: black;");
@@ -315,6 +372,7 @@ public class Main extends Application {
                     if (uname.isBlank() || pass.isEmpty()) {
                         errorAlert.setHeaderText("Missing Fields!");
                         errorAlert.setContentText("Please enter both username and password.");
+                        registerWrongAttempt(root, tagline);
                         errorAlert.showAndWait();
                         return;
                     }
@@ -323,6 +381,7 @@ public class Main extends Application {
                     if (data == null) {
                         errorAlert.setHeaderText("Error!");
                         errorAlert.setContentText("Could not load user data.");
+                        registerWrongAttempt(root, tagline);
                         errorAlert.showAndWait();
                         return;
                     }
@@ -337,11 +396,27 @@ public class Main extends Application {
                     }
 
                     if (currentUser != null) {
+                        // successful login: reset attempts and background; restore tagline; remove overlay if present
+                        wrongAttempts = 0;
+                        root.setStyle("");
+                        tagline.setText(defaultTagline);
+                        tagline.setStyle("-fx-text-fill: black;");
+                        tagline.setVisible(true);
+                        // remove overlay if present
+                        javafx.scene.Node toRemove = null;
+                        for (javafx.scene.Node n : root.getChildren()) {
+                            if (n instanceof javafx.scene.image.ImageView && "loginErrorOverlay".equals(n.getId())) {
+                                toRemove = n;
+                                break;
+                            }
+                        }
+                        if (toRemove != null) root.getChildren().remove(toRemove);
                         Dashboard db = new Dashboard();
                         db.showDashboard(primaryStage, currentUser);
                     } else {
                         errorAlert.setHeaderText("Login Failed!");
                         errorAlert.setContentText("Wrong account details.");
+                        registerWrongAttempt(root, tagline);
                         errorAlert.showAndWait();
                     }
 

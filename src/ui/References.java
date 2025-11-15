@@ -1,4 +1,4 @@
-package application.ui;
+package ui;
 
 import application.Fonts;
 import application.Main;
@@ -21,17 +21,20 @@ import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.animation.ScaleTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.util.Duration;
 import javafx.scene.input.MouseEvent;
 
-public class Credits {
+public class References {
 
-    // CREDITS WINDOW
-    public void showCredits(Stage primaryStage) {
+    // REFERENCES PAGE
+    public void showReferences(Stage primaryStage) {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
 
+    
     // Notebook image
     Image detailsImage = new Image("file:Elements/Details.png", false);
     ImageView iv = new ImageView(detailsImage);
@@ -39,6 +42,37 @@ public class Credits {
     iv.setFitHeight(900); 
     iv.setLayoutX(20);
     iv.setLayoutY(20);
+
+    // Banderitas
+    Image band1 = new Image("file:Elements/Banderitas1.png");
+    Image band2 = new Image("file:Elements/Banderitas2.png");
+    ImageView bandView = new ImageView(band1);
+    bandView.setPreserveRatio(true);
+    bandView.setFitWidth(750);
+    bandView.setLayoutX(790);
+    bandView.setLayoutY(-20);
+    bandView.setRotate(4);
+    root.getChildren().add(bandView);
+    Timeline bandTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+        if (bandView.getImage() == band1) {
+            bandView.setImage(band2);
+        } else {
+            bandView.setImage(band1);
+        }
+    }));
+    bandTimeline.setCycleCount(Timeline.INDEFINITE);
+    bandTimeline.play();
+
+    // Hover effect skeri banderitas :>
+    Image consume = new Image("file:Elements/yourenotsupposedtobehere/CONSUME.png");
+    bandView.setCursor(Cursor.HAND);
+    bandView.setOnMouseEntered(e -> {
+        bandTimeline.pause();
+        bandView.setImage(consume);
+    });
+    bandView.setOnMouseExited(e -> {
+        bandTimeline.play();
+    });
 
     // 3D EFFECT FOR THREE BUTTONS
     RadialGradient yellowGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
@@ -68,7 +102,7 @@ public class Credits {
     cBlue.setOnMouseExited(e -> cBlue.setEffect(ds));
     cRed.setOnMouseExited(e -> cRed.setEffect(ds));
 
-    // hover effefcts
+    // hover effects
     cYellow.setCursor(Cursor.HAND);
     cBlue.setCursor(Cursor.HAND);
     cRed.setCursor(Cursor.HAND);
@@ -91,7 +125,7 @@ public class Credits {
         st.setFromX(1); st.setFromY(1); st.setToX(1.25); st.setToY(1.25);
         st.setAutoReverse(true); st.setCycleCount(2);
         st.play();
-        new Walkthrough().showWalkthrough(primaryStage);
+        new References().showReferences(primaryStage);
     });
     cRed.setOnMouseClicked((MouseEvent me) -> {
         ScaleTransition st = new ScaleTransition(Duration.millis(180), cRed);
@@ -101,13 +135,14 @@ public class Credits {
         new Credits().showCredits(primaryStage);
     });
 
-    // Title
-    Label title = new Label("CREDITS");
+    // Title 
+    Label title = new Label("REFERENCES");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
     title.setLayoutX(220);
     title.setLayoutY(100);
     title.setRotate(3);
+
 
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
@@ -139,11 +174,16 @@ public class Credits {
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setScene(scene);
-        primaryStage.setTitle("SemSync - Credits");
+        primaryStage.setTitle("SemSync - References");
         primaryStage.setX(visualBounds.getMinX());
         primaryStage.setY(visualBounds.getMinY());
         primaryStage.setWidth(visualBounds.getWidth());
         primaryStage.setHeight(visualBounds.getHeight());
         primaryStage.show();
+    }
+
+    // Backwards-compatibility wrapper for older callers
+    public void showWalkthrough(Stage primaryStage) {
+        showReferences(primaryStage);
     }
 }

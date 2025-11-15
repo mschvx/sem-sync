@@ -1,4 +1,4 @@
-package application.models;
+package users;
 
 public class BachelorCS implements DegreeProgram {
     @Override

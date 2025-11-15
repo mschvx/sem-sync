@@ -1,16 +1,16 @@
-package application.ui;
+package ui;
 
 import application.Fonts;
 import application.Main;
-import application.models.DegreeLookup;
-import application.models.DegreeProgram;
-import application.models.User;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import users.DegreeLookup;
+import users.DegreeProgram;
+import users.User;
 import javafx.scene.text.Font;
 
 public class Dashboard {

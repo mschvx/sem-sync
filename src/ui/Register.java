@@ -1,8 +1,7 @@
-package application.ui;
+package ui;
 
 import application.Fonts;
 import application.Main;
-import application.models.User;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -32,13 +31,26 @@ import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
+import users.User;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 
 
 public class Register {
 
-    private Timeline envelopeTimeline; // <- declare this at class level
+    private Timeline envelopeTimeline; // for animations
+    private Timeline pcTimeline; 
+
+    private Timeline glitchTimeline; 
+    // small chance for something..?
+    private static final double GLITCH_CHANCE = 0.0099; // 0.99% chancec
+
+    // Images and view for PC and error-glitch replacement
+    private Image pc1Img;
+    private Image pc2Img;
+    private Image glitchImg;
+    private Image huhImg;
+    private ImageView pcImageView;
 
     Path path = Path.of(System.getProperty("user.dir"));
 
@@ -76,6 +88,8 @@ public class Register {
         } catch (IOException e) {
             errorAlert.setHeaderText("Error");
             errorAlert.setContentText("Cannot Load.");
+            // trigger temporary glitch animation to indicate error
+            triggerErrorGlitch();
             errorAlert.showAndWait();
             return list;
         }
@@ -95,6 +109,8 @@ public class Register {
         background.setLayoutX(0);
         background.setLayoutY(-50);
         root.getChildren().add(background);
+
+ 
 
         // Register text
         Label registerLabel = new Label("REGISTER");
@@ -204,6 +220,52 @@ public class Register {
         createButton.setPrefHeight(90);
         createButton.setFont(Fonts.loadSensaWild(40));
         root.getChildren().add(createButton);
+
+        // Load envelope images
+        Image envelope1 = new Image("file:Elements/Envelope1.png");
+        Image envelope2 = new Image("file:Elements/Envelope2.png");
+        ImageView envelopeView = new ImageView(envelope1);
+        envelopeView.setPreserveRatio(true);
+        envelopeView.setFitWidth(200);
+        envelopeView.setLayoutX(1240);
+        envelopeView.setLayoutY(520);
+        envelopeView.setRotate(20);
+        root.getChildren().add(envelopeView);
+        // Envelope hover animation
+        createButton.setOnMouseEntered(e -> startEnvelopeAnimation(envelopeView, envelope1, envelope2));
+        createButton.setOnMouseExited(e -> stopEnvelopeAnimation(envelopeView, envelope1));
+        
+        // Load PC images and animate them
+        pc1Img = new Image("file:Elements/PC1.png");
+        pc2Img = new Image("file:Elements/PC2.png");
+        // glitch images located in the hidden folder
+        glitchImg = new Image("file:Elements/yourenotsupposedtobehere/glitch.png");
+        huhImg = new Image("file:Elements/yourenotsupposedtobehere/huh.png");
+        pcImageView = new ImageView(pc1Img);
+        pcImageView.setPreserveRatio(true);
+        pcImageView.setFitWidth(300);
+        pcImageView.setLayoutX(0);
+        pcImageView.setLayoutY(0);
+        root.getChildren().add(pcImageView);
+
+        // Timeline to swap images for normal PC animation
+        pcTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0.5), event -> {
+                    // random chance to trigger glitch animation instead of normal swap
+                    if (Math.random() < GLITCH_CHANCE) {
+                        triggerErrorGlitch();
+                        return;
+                    }
+                    if (pcImageView.getImage() == pc1Img) {
+                        pcImageView.setImage(pc2Img);
+                        pcImageView.setRotate(7);
+                    } else {
+                        pcImageView.setImage(pc1Img);
+                        pcImageView.setRotate(0);
+                    }
+                }));
+        pcTimeline.setCycleCount(Timeline.INDEFINITE);
+        pcTimeline.play();
         
         // Username text field
         TextField usernameField = new TextField();
@@ -252,6 +314,7 @@ public class Register {
             if (uname.isBlank() || pass.isEmpty()) {
                 errorAlert.setHeaderText("Missing Fields!");
                 errorAlert.setContentText("Please fill in both username and password.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -259,6 +322,7 @@ public class Register {
             if (!isAlphanumeric(uname)) {
                 errorAlert.setHeaderText("Invalid Username");
                 errorAlert.setContentText("Username can only contain letters and numbers.\nNo spaces or special characters allowed.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -267,6 +331,7 @@ public class Register {
             if (!isAlphanumeric(pass)) {
                 errorAlert.setHeaderText("Invalid Password");
                 errorAlert.setContentText("Password can only contain letters and numbers.\nNo spaces or special characters allowed.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -275,6 +340,7 @@ public class Register {
             if (selectedDegree == null) {
                 errorAlert.setHeaderText("Missing Degree Program!");
                 errorAlert.setContentText("Please select a degree program.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -289,6 +355,7 @@ public class Register {
             if (usernameFound) {
                 errorAlert.setHeaderText("Invalid Username");
                 errorAlert.setContentText("This username is already taken. Please choose another one.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -310,6 +377,7 @@ public class Register {
             } catch (IOException ioEx) {
                 errorAlert.setHeaderText("Error");
                 errorAlert.setContentText("Unable to save account. Please try again.");
+                triggerErrorGlitch();
                 errorAlert.showAndWait();
                 return;
             }
@@ -366,6 +434,49 @@ public class Register {
                 }));
         envelopeTimeline.setCycleCount(Timeline.INDEFINITE);
         envelopeTimeline.play();
+    }
+
+    // Trigger a short glitch animation using images from the hidden folder
+    private void triggerErrorGlitch() {
+        if (pcImageView == null) {
+            return; // nothing to animate yet
+        }
+        if (glitchTimeline != null && glitchTimeline.getStatus() == Timeline.Status.RUNNING) {
+            return; // already showing glitch
+        }
+
+        // pause normal PC animation
+        if (pcTimeline != null && pcTimeline.getStatus() == Timeline.Status.RUNNING) {
+            pcTimeline.pause();
+        }
+
+        // immediately show first glitch image
+        if (glitchImg != null) {
+            pcImageView.setImage(glitchImg);
+            pcImageView.setRotate(0);
+        }
+
+        // toggle between glitch and huh for a short moment 
+        glitchTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), event -> {
+            if (pcImageView.getImage() == glitchImg) {
+                pcImageView.setImage(huhImg);
+            } else {
+                pcImageView.setImage(glitchImg);
+            }
+        }));
+        glitchTimeline.setCycleCount(2);
+        glitchTimeline.setOnFinished(event -> {
+            glitchTimeline = null;
+            // restore normal pc image and rotation
+            if (pc1Img != null) {
+                pcImageView.setImage(pc1Img);
+                pcImageView.setRotate(0);
+            }
+            if (pcTimeline != null) {
+                pcTimeline.play();
+            }
+        });
+        glitchTimeline.play();
     }
 
     // Method to stop animating the envelope and reset
