@@ -10,22 +10,75 @@ import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Font;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
-import javafx.animation.KeyFrame;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javafx.animation.ScaleTransition;
-import javafx.animation.Timeline;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.util.Duration;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 
 
 public class Register {	
-    private javafx.animation.Timeline envelopeTimeline; // for envelope animation
+	
+	Path path = Path.of(System.getProperty("user.dir"));
+	
+	// used for validating if user created does not already exist
+	private ObservableList<User> loadData(Path path) {
+        ObservableList<User> list = FXCollections.<User>observableArrayList();
+        Path folder = Paths.get("placeholder");
+        Path file = folder.resolve("placeholder.csv");
+
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+
+        if (!Files.exists(file)) {
+            errorAlert.setHeaderText("Error!");
+            errorAlert.setContentText("File not Found!");
+            errorAlert.showAndWait();
+            return list;
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split(",");
+
+                String username = parts[0].trim();
+                String password = parts[1].trim();
+
+                list.add(new User(username, password));
+            }
+
+        } catch (IOException e) {
+            errorAlert.setHeaderText("Error");
+            errorAlert.setContentText("Cannot Load.");
+            errorAlert.showAndWait();
+            return list;
+        }
+
+        return list;
+    }
 
     public void showRegister(Stage primaryStage) {
         Pane root = new Pane();
@@ -170,57 +223,65 @@ public class Register {
                 "-fx-border-width: 4;");
         root.getChildren().add(passwordField);
         
-        // Load sprites
-        Image envelope1 = new Image("file:Elements/Envelope1.png");
-        Image envelope2 = new Image("file:Elements/Envelope2.png");
+     // Loading data from CSV File
+        ObservableList<User> data = loadData(path);
         
-        // Envelope
-        ImageView envelopeView = new ImageView(envelope1);
-        envelopeView.setPreserveRatio(true);
-        envelopeView.setFitWidth(200);
-        envelopeView.setLayoutX(1250);
-        envelopeView.setLayoutY(520);
-        envelopeView.setRotate(20);
-    // shadow for envelope
-    DropShadow envelopeShadow = new DropShadow();
-    envelopeShadow.setRadius(10);
-    envelopeShadow.setOffsetX(4);
-    envelopeShadow.setOffsetY(4);
-    envelopeShadow.setColor(Color.rgb(0, 0, 0, 0.35));
-    envelopeView.setEffect(envelopeShadow);
-        root.getChildren().add(envelopeView);
-        
-
-        // Start envelope animation when hovering over the create button
-        createButton.setOnMouseEntered(e -> startEnvelopeAnimation(envelopeView, envelope1, envelope2));
-
-        // Stop envelope animation and reset when mouse exits
-        createButton.setOnMouseExited(e -> stopEnvelopeAnimation(envelopeView, envelope1));
-
-        // Load PC sprites 
-        Image pc1 = new Image("file:Elements/PC1.png");
-        Image pc2 = new Image("file:Elements/PC2.png");
-
-        ImageView pcView = new ImageView(pc1);
-        pcView.setPreserveRatio(true);
-        pcView.setFitWidth(250);
-        pcView.setLayoutX(30);
-        pcView.setLayoutY(0);
-        pcView.setRotate(-5);
-        root.getChildren().add(pcView);
-
-        // Timeline to swap every 0.5 sec.
-        Timeline pcTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0.5), event -> {
-                    if (pcView.getImage() == pc1) {
-                        pcView.setImage(pc2);
-                    } else {
-                        pcView.setImage(pc1);
-                    }
-                }));
-        pcTimeline.setCycleCount(Timeline.INDEFINITE);
-        pcTimeline.play();
-
+        // logic for creating account
+        createButton.setOnAction(e -> {
+        	String uname = usernameField.getText().trim();
+        	String pass = passwordField.getText().trim();
+        	ToggleButton selectedDegree = (ToggleButton) degreeGroup.getSelectedToggle();
+        	boolean usernameFound = false;
+        	
+        	Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+        	
+        	for (User user : data) {
+        		if (user.getUsername().equals(uname)) {
+        			usernameFound = true;
+        			break;
+        		}
+        	}
+        	// user already exists
+        	if (usernameFound = true) {
+        		errorAlert.setHeaderText("Invalid Username");
+        		errorAlert.setContentText("This username is already taken. Please choose another one.");
+        		errorAlert.showAndWait();
+        	}
+        	// blank inputs
+        	else if (uname.isBlank() || pass.isEmpty()) {
+        		errorAlert.setHeaderText("Missing Fields!");
+        		errorAlert.setContentText("Please fill in both username and password.");
+        		errorAlert.showAndWait();
+        	}
+        	else if (selectedDegree == null) {
+        		errorAlert.setHeaderText("Missing Degree Program!");
+        		errorAlert.setContentText("Please select a degree program.");
+        		errorAlert.showAndWait();
+        	}
+        	// special characters
+        	else if (!isAlphanumeric(uname)) {
+        		errorAlert.setHeaderText("Invalid Username");
+        		errorAlert.setContentText("Username can only contain letters and numbers.\nNo spaces or special characters allowed.");
+        		errorAlert.showAndWait();
+        	}
+        	else if (!isAlphanumeric(pass)) {
+        		errorAlert.setHeaderText("Invalid Paddword");
+        		errorAlert.setContentText("Password can only contain letters and numbers.\\nNo spaces or special characters allowed.");
+        		errorAlert.showAndWait();
+        	}
+        	else {
+        		Alert success = new Alert(Alert.AlertType.INFORMATION);
+        		success.setTitle("Account Created");
+        		success.setHeaderText(null);
+        		success.setContentText("Account created. Now go log in!");
+        		success.showAndWait();
+        		
+        		// go back to log in page
+        		Main main = new Main();
+        		main.start(primaryStage);
+        	}
+        });
+       
 
         // Set up window properties
         primaryStage.setScene(scene);
@@ -231,6 +292,11 @@ public class Register {
         primaryStage.setHeight(visualBounds.getHeight());
         primaryStage.show();
     }
+    
+    
+    // method for detecting special character inputs
+    private boolean isAlphanumeric(String text) {
+    	return text.matches("^[A-Za-z0-9]+$");
 
     // Method to animate the envelope doodle while hovering
     private void startEnvelopeAnimation(ImageView envelopeView, Image envelope1, Image envelope2) {
