@@ -46,16 +46,9 @@ public class Register {
     private ObservableList<User> loadData(Path path) {
         ObservableList<User> list = FXCollections.<User>observableArrayList();
         Path folder = Paths.get("Database");
-        Path file = folder.resolve("Users.java");
+        Path file = folder.resolve("users.csv");
 
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-
-        if (!Files.exists(file)) {
-            errorAlert.setHeaderText("Error!");
-            errorAlert.setContentText("File not Found!");
-            errorAlert.showAndWait();
-            return list;
-        }
 
         try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             String line;

@@ -8,6 +8,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.Font;
@@ -120,6 +121,21 @@ public class Credits {
     hRed.setMouseTransparent(true);
 
     root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title);
+
+    // Go Back Button
+    Button goBackButton = new Button("Go Back");
+    goBackButton.getStyleClass().add("btn-back");
+    goBackButton.setLayoutX(1220);
+    goBackButton.setLayoutY(650);
+    goBackButton.setPrefWidth(250);
+    goBackButton.setPrefHeight(50);
+    goBackButton.setFont(Fonts.loadSensaWild(40));
+    root.getChildren().add(goBackButton);
+
+    goBackButton.setOnAction(e -> {
+        Main main = new Main();
+        main.start(primaryStage);
+    });
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         primaryStage.setScene(scene);
