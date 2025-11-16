@@ -39,7 +39,7 @@ public class Dashboard {
         DegreeProgram program = DegreeLookup.fromCode(degreeCode);
         String shortName = (program != null) ? program.getCourseCode() : "";
 
-        String greeting = "Hello" + (shortName.isEmpty() ? "" : " " + shortName) + ",";
+        String greeting = "Hello, " + user.getUsername().toUpperCase() + " -" + (shortName.isEmpty() ? "" : " " + shortName) + "!";
 
         Label greetLabel = new Label(greeting);
         Font greetFont = Font.loadFont(Fonts.SENSA_SERIF, 80);

@@ -142,29 +142,48 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            Pane root = new Pane(); // keeps CSS background fixed
-            root.getStyleClass().add("root"); // ensure background from CSS applies
+            double baseWidth = Sizing.BASE_WIDTH;
+            double baseHeight = Sizing.BASE_HEIGHT;
 
-            Pane content = new Pane(); // holds everything that scales
+            Pane root = new Pane();
+            root.getStyleClass().add("root");
+
+            Pane content = new Pane();
+            content.setTranslateX(0);
+            content.setTranslateY(0);
             root.getChildren().add(content);
 
-            Scene scene = new Scene(root, 1536, 864);
+            Scene scene = new Scene(root,1536,864);
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
             primaryStage.setScene(scene);
-            primaryStage.setTitle("SemSync - Log In"); // Window title
-            primaryStage.setMaximized(true); // Maximize window to fit screen
+            primaryStage.setTitle("SemSync - Log In");
+            primaryStage.setMaximized(true);
             primaryStage.show();
 
-            // Reference resolution for scaling 
-                double baseWidth = Sizing.BASE_WIDTH;
-                double baseHeight = Sizing.BASE_HEIGHT;
+            // Scaling and centering logic
+            Runnable updateLayout = () -> {
+                double scaleX = scene.getWidth() / baseWidth;
+                double scaleY = scene.getHeight() / baseHeight;
+                double scale = Math.max(scaleX, scaleY);
 
-            // Scale based on screen
-            content.scaleXProperty().bind(scene.widthProperty().divide(baseWidth));
-            content.scaleYProperty().bind(scene.heightProperty().divide(baseHeight));
+                content.setScaleX(scale);
+                content.setScaleY(scale);
+
+                content.setTranslateX(baseWidth * (scale - 1) / 2);
+                content.setTranslateY(baseHeight * (scale - 1) / 2);
+            };
+
+            // Apply initially and on resize
+            updateLayout.run();
+            scene.widthProperty().addListener((obs, old, newVal) -> updateLayout.run());
+            scene.heightProperty().addListener((obs, old, newVal) -> updateLayout.run());
+            
+            javafx.application.Platform.runLater(() -> updateLayout.run());
 
             // Load paper image
             ImageView background = new ImageView(new Image("file:Elements/LoginPaper.png"));
+            background.setPreserveRatio(false);
+            background.setFitWidth(baseWidth + 8);
             background.setFitHeight(1000);
             background.setLayoutX(0);
             background.setLayoutY(-100);
@@ -377,7 +396,6 @@ public class Main extends Application {
                         return;
                     }
 
-    
                     if (data == null) {
                         errorAlert.setHeaderText("Error!");
                         errorAlert.setContentText("Could not load user data.");
@@ -427,14 +445,15 @@ public class Main extends Application {
             
             // Button click for register
             registerButton.setOnAction(e -> {
-            	Register register = new Register();
-            	register.showRegister(primaryStage);
+                Register register = new Register();
+                register.showRegister(primaryStage);
             });
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } // Correct closing brace for start method
+    }
+     // Correct closing brace for start method
 
     // Method to animate the plane doodle
     private void startPlaneAnimation(ImageView planeView, Image plane1, Image plane2) {
