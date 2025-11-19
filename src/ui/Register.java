@@ -157,7 +157,7 @@ public class Register {
             "PHDCS"
         };
         double startY = 360;
-        Font degreeFont = Font.font("Montserrat", 30);
+        Font degreeFont = Fonts.loadMontserratRegular(30);
 
         // Add toggles beside the names of degprog
         ToggleGroup degreeGroup = new ToggleGroup();
@@ -273,7 +273,7 @@ public class Register {
         usernameField.setLayoutY(400);
         usernameField.setPrefWidth(600);
         usernameField.setPrefHeight(60);
-        usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+        usernameField.setFont(Fonts.loadMontserratRegular(30));
         usernameField.setStyle("-fx-background-color: #ebebeb; " +
                 "-fx-border-color: black; " +
                 "-fx-border-radius: 15; " +
@@ -288,7 +288,8 @@ public class Register {
         passwordField.setLayoutY(580);
         passwordField.setPrefWidth(600);
         passwordField.setPrefHeight(60);
-        passwordField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+        // Use system font for password field so masked characters render reliably
+        passwordField.setFont(javafx.scene.text.Font.font("System", 30));
         passwordField.setStyle("-fx-background-color: #ebebeb; " +
                 "-fx-border-color: black; " +
                 "-fx-border-radius: 15; " +

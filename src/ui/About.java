@@ -147,7 +147,7 @@ public class About {
     // Body text 
     String bodyText1 = "SemSync is a course registration planner designed to help students organize their semester schedules with ease.";
     Label body1 = new Label(bodyText1);
-    body1.setFont(Font.font("Montserrat", 24));
+    body1.setFont(Fonts.loadMontserratRegular(24));
     body1.setWrapText(true);
     body1.setMaxWidth(570);
     body1.setLayoutX(220);
@@ -158,7 +158,7 @@ public class About {
     String bodyText2 = "It lets students browse available courses, add them to their planner, and instantly see their schedules on a weekly calendar for quick visualization.";
     
     Label body2 = new Label(bodyText2);
-    body2.setFont(Font.font("Montserrat", 24));
+    body2.setFont(Fonts.loadMontserratRegular(24));
     body2.setWrapText(true);
     body2.setMaxWidth(570);
     body2.setLayoutX(210);
@@ -168,7 +168,7 @@ public class About {
     
     String bodyText3 = "SemSync makes managing your courses simple and efficient. Whether you are adding, editing, or reviewing your planned subjects, SemSync provides clear prompts and easy-to-use tools to guide you every step of the way.";
     Label body3 = new Label(bodyText2);
-    body3.setFont(Font.font("Montserrat", 24));
+    body3.setFont(Fonts.loadMontserratRegular(24));
     body3.setWrapText(true);
     body3.setMaxWidth(570);
     body3.setLayoutX(200);

@@ -5,6 +5,9 @@ import application.Main;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import java.io.File;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -14,6 +17,8 @@ import users.User;
 import javafx.scene.text.Font;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
 import javafx.scene.control.ListView;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
@@ -38,112 +43,173 @@ public class Dashboard {
         primaryStage.setHeight(visualBounds.getHeight());
 
 
-        // menu button
-        Button menuBtn = new Button("☰");
-        menuBtn.getStyleClass().add("btn-menu");
+        // menu button 
+        Image menuImage = null;
+        ImageView menuBtn = new ImageView();
+        File menuFile = new File("Elements/Menu.png");
+        menuImage = new Image(menuFile.toURI().toString());
+        menuBtn.setImage(menuImage);
+        menuBtn.setFitWidth(130);
+        menuBtn.setFitHeight(130);
+        menuBtn.setPreserveRatio(true);
         menuBtn.setLayoutX(12);
-        menuBtn.setLayoutY(40);
-        menuBtn.setPrefWidth(56);
-        menuBtn.setPrefHeight(56);
-        menuBtn.setStyle("-fx-font-size: 22px; -fx-background-radius: 28; -fx-border-radius: 28;");
+        menuBtn.setLayoutY(10);
 
-        // sidebar left
+
+        // sidebar left 
         Pane sidebar = new Pane();
-        sidebar.getStyleClass().add("sidebar");
         sidebar.setLayoutX(0);
         sidebar.setLayoutY(0);
-        double sidebarWidth = 260;
+        double sidebarWidth = 370;
+        double contentShift = 200;   // control this if masyadong malayo yung animation nya sa right
         sidebar.setPrefWidth(sidebarWidth);
         sidebar.setPrefHeight(visualBounds.getHeight());
-        sidebar.setVisible(false); // hidden default; will transition when clicked
-        sidebar.setTranslateX(-sidebarWidth); // start off-screen
+        // hidden by default; menu button will toggle it
+        sidebar.setVisible(false);
+        sidebar.setTranslateX(-sidebarWidth);
+
+        // load 
+        File imgFile = new File("Elements/Sidebar.png");
+        Image sidebarImg = new Image(imgFile.toURI().toString());
+        ImageView bg = new ImageView(sidebarImg);
+        bg.setFitWidth(sidebarWidth);
+        bg.setFitHeight(visualBounds.getHeight());
+        bg.setPreserveRatio(false);
+        bg.setLayoutX(0);
+        bg.setLayoutY(0);
+        sidebar.getChildren().add(bg);
+
 
         // Sidebar content
+        int buttonXPos = 30;
         Label sideTitle = new Label("MENU");
         sideTitle.setStyle("-fx-text-fill: white; -fx-letter-spacing: 1px;");
-        sideTitle.setFont(Fonts.loadSensaWild(34));
+        sideTitle.setFont(Fonts.loadSensaSerif(110));
         sideTitle.setLayoutX(40);
-        sideTitle.setLayoutY(40);
+        sideTitle.setLayoutY(10);
+        sideTitle.setStyle("-fx-text-fill: black; -fx-letter-spacing: 1px;");
 
-        Button btnAbout = new Button("About");
-        btnAbout.setLayoutX(40);
-        btnAbout.setLayoutY(80);
-        btnAbout.setPrefWidth(180);
-        btnAbout.getStyleClass().add("btn-sidebar");
-        btnAbout.setFont(Fonts.loadMontserratRegular(18));
-        btnAbout.setOnAction(ev -> {
-            new About().showAbout(primaryStage);
-        });
 
-        Button btnCredits = new Button("Credits");
-        btnCredits.setLayoutX(40);
-        btnCredits.setLayoutY(120);
-        btnCredits.setPrefWidth(180);
-        btnCredits.getStyleClass().add("btn-sidebar");
-        btnCredits.setFont(Fonts.loadMontserratRegular(18));
-        btnCredits.setOnAction(ev -> {
-            new Credits().showCredits(primaryStage);
-        });
+        Button btnAbout = new Button("ABOUT");
+        btnAbout.setLayoutX(buttonXPos);
+        btnAbout.setLayoutY(140);
+        btnAbout.setPrefWidth(sidebarWidth - 80);
+        btnAbout.setPrefHeight(48);
+        btnAbout.setFont(Fonts.loadSensaWild(22));
+        btnAbout.getStyleClass().add("btn-about");
+        btnAbout.getStyleClass().add("sidebar-pill");
+        btnAbout.setOnAction(ev -> new About().showAbout(primaryStage));
 
-        Button btnReferences = new Button("References");
-        btnReferences.setLayoutX(40);
-        btnReferences.setLayoutY(160);
-        btnReferences.setPrefWidth(180);
-        btnReferences.getStyleClass().add("btn-sidebar");
-        btnReferences.setFont(Fonts.loadMontserratRegular(18));
-        btnReferences.setOnAction(ev -> {
-            new References().showReferences(primaryStage);
-        });
+        Button btnTutorial = new Button("TUTORIAL");
+        btnTutorial.setLayoutX(buttonXPos);
+        btnTutorial.setLayoutY(200);
+        btnTutorial.setPrefWidth(sidebarWidth - 80);
+        btnTutorial.setPrefHeight(48);
+        btnTutorial.setFont(Fonts.loadSensaWild(22));
+        btnTutorial.getStyleClass().add("btn-register");
+        btnTutorial.getStyleClass().add("sidebar-pill");
+        // Tutorial intentionally does nothing for now
+        btnTutorial.setOnAction(ev -> { /* no-op */ });
 
-        Button btnDash = new Button("Dashboard");
-        btnDash.setLayoutX(40);
-        btnDash.setLayoutY(210);
-        btnDash.setPrefWidth(180);
-        btnDash.getStyleClass().add("btn-sidebar");
-        btnDash.setFont(Fonts.loadMontserratRegular(18));
+        Button btnCatalogue = new Button("CATALOGUE");
+        btnCatalogue.setLayoutX(buttonXPos);
+        btnCatalogue.setLayoutY(260);
+        btnCatalogue.setPrefWidth(sidebarWidth - 80);
+        btnCatalogue.setPrefHeight(48);
+        btnCatalogue.setFont(Fonts.loadSensaWild(22));
+        btnCatalogue.getStyleClass().add("btn-create");
+        btnCatalogue.getStyleClass().add("sidebar-pill");
+        btnCatalogue.setOnAction(ev -> { /* wla pa*/ });
 
-        Button btnLogout = new Button("Logout");
-        btnLogout.setLayoutX(40);
-        btnLogout.setLayoutY(270);
-        btnLogout.setPrefWidth(180);
-        btnLogout.getStyleClass().add("btn-logout");
-        btnLogout.setFont(Fonts.loadMontserratRegular(16));
-        // Logout will return to main login screen and mark logged out
+        Button btnCredits = new Button("CREDITS");
+        btnCredits.setLayoutX(buttonXPos);
+        btnCredits.setLayoutY(570);
+        btnCredits.setPrefWidth(sidebarWidth - 80);
+        btnCredits.setPrefHeight(48);
+        btnCredits.setFont(Fonts.loadSensaWild(22));
+        btnCredits.getStyleClass().add("btn-about");
+        btnCredits.setOnAction(ev -> new Credits().showCredits(primaryStage));
+        btnCredits.getStyleClass().add("sidebar-pill");
+
+        Button btnReferences = new Button("REFERENCES");
+        btnReferences.setLayoutX(buttonXPos);
+        btnReferences.setLayoutY(630);
+        btnReferences.setPrefWidth(sidebarWidth - 80);
+        btnReferences.setPrefHeight(48);
+        btnReferences.setFont(Fonts.loadSensaWild(22));
+        btnReferences.getStyleClass().add("btn-register");
+        btnReferences.getStyleClass().add("sidebar-pill");
+        btnReferences.setOnAction(ev -> new References().showReferences(primaryStage));
+
+        // Logout button: 
+        Button btnLogout = new Button("LOG OUT");
+        btnLogout.setLayoutX(buttonXPos);
+        btnLogout.setLayoutY(700);
+        btnLogout.setPrefWidth(sidebarWidth - 80);
+        btnLogout.setPrefHeight(58); 
+        btnLogout.setFont(Fonts.loadMontserratBold(22));
+        btnLogout.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff827f, #ff4c4c);"
+            + " -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 22px;"
+            + " -fx-border-radius: 28; -fx-background-radius: 28; -fx-padding: 12 18 12 18;"
+            + " -fx-effect: none; -fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1;"
+            + " -fx-cursor: default; -fx-min-height: 56px;");
+        btnLogout.setOnMouseEntered(ev -> {});
+        btnLogout.setOnMouseExited(ev -> {});
+        btnLogout.setFocusTraversable(false);
+
         btnLogout.setOnAction(ev -> {
             try {
                 Main.isLoggedIn = false;
                 Main.loggedInUser = null;
                 Main main = new Main();
-                main.start(primaryStage);
+                main.start(primaryStage); // go back to login screen
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
 
-        sidebar.getChildren().addAll(sideTitle, btnAbout, btnCredits, btnReferences, btnDash, btnLogout);
+        sidebar.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, btnCredits, btnReferences, btnLogout);
 
-        // --- Content pane: put dashboard UI here so it can shift ---
+        // --- Contents ---
         Pane content = new Pane();
         content.setLayoutX(0);
         content.setLayoutY(0);
 
         root.getChildren().addAll(sidebar, content, menuBtn);
 
+        // Menu hover rotation every 0.5 seconds
+        final Timeline menuTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+            if (menuBtn.getRotate() == 3) {
+                menuBtn.setRotate(-3);
+            } else {
+                menuBtn.setRotate(3);
+            }
+        }));
+        menuTimeline.setCycleCount(Timeline.INDEFINITE);
+
+        menuBtn.setOnMouseEntered(e -> menuTimeline.play());
+        menuBtn.setOnMouseExited(e -> {
+            menuTimeline.stop();
+            menuBtn.setRotate(0);
+        });
+
         // Toggle sidebar animation 
         SimpleBooleanProperty open = new SimpleBooleanProperty(false);
-        final double menuNudge = 48; // how far the menu button moves right when sidebar opens
-        menuBtn.setOnAction(e -> {
+        final double menuNudge = 185; // how far the menu button moves right when sidebar opens
+        menuBtn.setOnMouseClicked(e -> {
             if (!open.get()) {
                 // when sidebar clicked: make visible, slide in, shift content right
                 sidebar.setVisible(true);
+                sidebar.toFront(); // always sidebar to front so all buttosn will always be clickable
                 TranslateTransition tSidebar = new TranslateTransition(Duration.millis(260), sidebar);
                 tSidebar.setFromX(-sidebarWidth);
                 tSidebar.setToX(0);
                 TranslateTransition tContent = new TranslateTransition(Duration.millis(260), content);
-                tContent.setToX(sidebarWidth);
+                tContent.setToX(contentShift);
                 TranslateTransition tMenu = new TranslateTransition(Duration.millis(260), menuBtn);
                 tMenu.setToX(menuNudge);
                 tSidebar.play(); tContent.play(); tMenu.play();
+                menuBtn.toFront();
                 open.set(true);
             } else {
                 // if close then slide sidebar out, shift content back, then hide
@@ -154,7 +220,7 @@ public class Dashboard {
                 tContent.setToX(0);
                 TranslateTransition tMenu = new TranslateTransition(Duration.millis(260), menuBtn);
                 tMenu.setToX(0);
-                tSidebar.setOnFinished(ev -> sidebar.setVisible(false));
+                tSidebar.setOnFinished(ev -> { sidebar.setVisible(false); menuBtn.toFront(); });
                 tSidebar.play(); tContent.play(); tMenu.play();
                 open.set(false);
             }
@@ -198,7 +264,7 @@ public class Dashboard {
 
         // -- List of items added by user --
         Label itemsLabel = new Label("Your Items");
-        itemsLabel.setFont(Font.font("Montserrat", 28));
+        itemsLabel.setFont(Fonts.loadMontserratRegular(28));
         itemsLabel.setLayoutX(220);
         itemsLabel.setLayoutY(330);
 

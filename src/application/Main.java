@@ -311,7 +311,7 @@ public class Main extends Application {
             usernameField.setLayoutY(280);
             usernameField.setPrefWidth(600);
             usernameField.setPrefHeight(60);
-            usernameField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+            usernameField.setFont(Fonts.loadMontserratRegular(30));
             usernameField.setStyle("-fx-background-color: #ebebeb; " +
                     "-fx-border-color: black; " +
                     "-fx-border-radius: 15; " +
@@ -326,7 +326,8 @@ public class Main extends Application {
             passwordField.setLayoutY(480);
             passwordField.setPrefWidth(600);
             passwordField.setPrefHeight(60);
-            passwordField.setFont(javafx.scene.text.Font.font("Montserrat", 30));
+            // Use system font for password field to avoid missing glyphs for masked characters
+            passwordField.setFont(javafx.scene.text.Font.font("System", 30));
             passwordField.setStyle("-fx-background-color: #ebebeb; " +
                     "-fx-border-color: black; " +
                     "-fx-border-radius: 15; " +
@@ -361,7 +362,7 @@ public class Main extends Application {
             aboutButton.setLayoutY(620);
             aboutButton.setPrefWidth(300);
             aboutButton.setPrefHeight(60);
-            aboutButton.setFont(javafx.scene.text.Font.font("Montserrat", 20));
+            aboutButton.setFont(Fonts.loadMontserratRegular(20));
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             content.getChildren().add(aboutButton);
 
