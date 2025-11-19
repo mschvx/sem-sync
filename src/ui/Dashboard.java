@@ -108,8 +108,7 @@ public class Dashboard {
         btnTutorial.setFont(Fonts.loadSensaWild(22));
         btnTutorial.getStyleClass().add("btn-register");
         btnTutorial.getStyleClass().add("sidebar-pill");
-        // Tutorial intentionally does nothing for now
-        btnTutorial.setOnAction(ev -> { /* no-op */ });
+        btnTutorial.setOnAction(ev -> { /* waley pa */ });
 
         Button btnCatalogue = new Button("CATALOGUE");
         btnCatalogue.setLayoutX(buttonXPos);
@@ -120,6 +119,32 @@ public class Dashboard {
         btnCatalogue.getStyleClass().add("btn-create");
         btnCatalogue.getStyleClass().add("sidebar-pill");
         btnCatalogue.setOnAction(ev -> { /* wla pa*/ });
+
+        // eye image
+        File eyelidFile = new File("Elements/eyelid.png");
+        Image eyelidImg = new Image(eyelidFile.toURI().toString());
+        ImageView eyelidView = new ImageView(eyelidImg);
+        eyelidView.setPreserveRatio(true);
+        eyelidView.setFitWidth(sidebarWidth - 80); // for aesthetic
+        eyelidView.setLayoutX(buttonXPos);
+        eyelidView.setLayoutY(360);
+
+        File eyeFile = new File("Elements/eye.png");
+        Image eyeImg = new Image(eyeFile.toURI().toString());
+        ImageView eyeView = new ImageView(eyeImg);
+        eyeView.setPreserveRatio(true);
+        eyeView.setFitWidth(sidebarWidth - 80);
+        eyeView.setLayoutX(buttonXPos);
+        eyeView.setLayoutY(360);
+
+        // Anger overlay image 
+        final Image angerImg = new Image(new File("Elements/yourenotsupposedtobehere/ANGER.png").toURI().toString());
+        ImageView angerView = new ImageView(angerImg);
+        angerView.setPreserveRatio(true);
+        angerView.setFitWidth(sidebarWidth - 80);
+        angerView.setLayoutX(buttonXPos);
+        angerView.setLayoutY(360);
+        angerView.setVisible(false);
 
         Button btnCredits = new Button("CREDITS");
         btnCredits.setLayoutX(buttonXPos);
@@ -153,8 +178,23 @@ public class Dashboard {
             + " -fx-border-radius: 28; -fx-background-radius: 28; -fx-padding: 12 18 12 18;"
             + " -fx-effect: none; -fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1;"
             + " -fx-cursor: default; -fx-min-height: 56px;");
-        btnLogout.setOnMouseEntered(ev -> {});
-        btnLogout.setOnMouseExited(ev -> {});
+        // when hover hide eyelid eand eye.png
+        btnLogout.setOnMouseEntered(ev -> {
+            try {
+                eyelidView.setVisible(false);
+                eyeView.setVisible(false);
+                angerView.setVisible(true);
+            } catch (Exception ex) {
+            }
+        });
+        btnLogout.setOnMouseExited(ev -> {
+            try {
+                angerView.setVisible(false);
+                eyeView.setVisible(true);
+                eyelidView.setVisible(true);
+            } catch (Exception ex) {
+            }
+        });
         btnLogout.setFocusTraversable(false);
 
         btnLogout.setOnAction(ev -> {
@@ -168,7 +208,8 @@ public class Dashboard {
             }
         });
 
-        sidebar.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, btnCredits, btnReferences, btnLogout);
+        // sidebar add to the screen all
+        sidebar.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
 
         // --- Contents ---
         Pane content = new Pane();
@@ -176,6 +217,29 @@ public class Dashboard {
         content.setLayoutY(0);
 
         root.getChildren().addAll(sidebar, content, menuBtn);
+
+        // Make the eye follow the mouse cursor by rotating the eye image around its center
+        final javafx.scene.transform.Rotate eyeRotate = new javafx.scene.transform.Rotate(0, 0, 0);
+        eyeView.getTransforms().add(eyeRotate);
+        scene.setOnMouseMoved(ev -> {
+            try {
+                javafx.geometry.Bounds localBounds = eyeView.getBoundsInLocal();
+                double pivotLocalX = localBounds.getWidth() * 0.5;
+                double pivotLocalY = localBounds.getHeight() * 0.5;
+                eyeRotate.setPivotX(pivotLocalX);
+                eyeRotate.setPivotY(pivotLocalY);
+
+                javafx.geometry.Point2D pivotScene = eyeView.localToScene(pivotLocalX, pivotLocalY);
+                double dx = ev.getSceneX() - pivotScene.getX();
+                double dy = ev.getSceneY() - pivotScene.getY();
+                double angle = Math.toDegrees(Math.atan2(dy, dx));
+                // rotate to retain original position (since for some reason nasa right side ang default)
+                final double ROTATION_OFFSET = -90.0; // subtract 90 degrees
+                eyeRotate.setAngle(angle + ROTATION_OFFSET);
+            } catch (Exception ex) {
+                // none
+            }
+        });
 
         // Menu hover rotation every 0.5 seconds
         final Timeline menuTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
