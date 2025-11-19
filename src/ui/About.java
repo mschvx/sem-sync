@@ -33,6 +33,17 @@ public class About {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+        // add Info.png 
+        try {
+            Image infoImage = new Image("file:Elements/Info.png");
+            ImageView infoView = new ImageView(infoImage);
+            infoView.setLayoutX(0);
+            infoView.setLayoutY(30);
+            infoView.setFitHeight(750);
+            root.getChildren().add(infoView);
+        } catch (Exception ex) {
+            // ignore if missing
+        }
     
     // Notebook image
     Image detailsImage = new Image("file:Elements/Details.png", false);
@@ -61,7 +72,7 @@ public class About {
     }));
     bandTimeline.setCycleCount(Timeline.INDEFINITE);
     bandTimeline.play();
-    // Hover effect: show CONSUME.png while hovered, pause swapping
+    // show CONSUME.png while hovered, pause swapping
     Image consume = new Image("file:Elements/yourenotsupposedtobehere/CONSUME.png");
     bandView.setCursor(Cursor.HAND);
     bandView.setOnMouseEntered(e -> {
@@ -144,37 +155,63 @@ public class About {
     title.setLayoutY(100);
     title.setRotate(3);
 
-    // Body text 
+    // Body text — put into two white boxed panels
     String bodyText1 = "SemSync is a course registration planner designed to help students organize their semester schedules with ease.";
+    String bodyText2 = "It lets students browse available courses, add them to their planner, and instantly see their schedules on a weekly calendar for quick visualization.";
+    String bodyText3 = "SemSync makes managing your courses simple and efficient. Whether you are adding, editing, or reviewing your planned subjects, SemSync provides clear prompts and easy-to-use tools to guide you every step of the way.";
+
+    // Use slightly taller boxes so wrapped text fits without overflowing
+    final double boxWidth = 570;
+    final double boxInnerPadding = 12;
+    final double boxHeight = 140;
+
+    // Box 1
+    Pane box1 = new Pane();
+    box1.setLayoutX(220);
+    box1.setLayoutY(210);
+    box1.setPrefWidth(boxWidth);
+    box1.setPrefHeight(boxHeight-20);
+    box1.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
     Label body1 = new Label(bodyText1);
     body1.setFont(Fonts.loadMontserratRegular(24));
     body1.setWrapText(true);
-    body1.setMaxWidth(570);
-    body1.setLayoutX(220);
-    body1.setLayoutY(192);
-    body1.setRotate(3);
+    body1.setMaxWidth(boxWidth - boxInnerPadding * 2);
+    body1.setLayoutX(boxInnerPadding);
+    body1.setLayoutY(boxInnerPadding);
     body1.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
-    
-    String bodyText2 = "It lets students browse available courses, add them to their planner, and instantly see their schedules on a weekly calendar for quick visualization.";
-    
+    box1.getChildren().add(body1);
+
+    // Box 2
+    Pane box2 = new Pane();
+    box2.setLayoutX(190);
+    box2.setLayoutY(160 + boxHeight + 50);
+    box2.setPrefWidth(boxWidth);
+    box2.setPrefHeight(boxHeight+10);
+    box2.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
     Label body2 = new Label(bodyText2);
     body2.setFont(Fonts.loadMontserratRegular(24));
     body2.setWrapText(true);
-    body2.setMaxWidth(570);
-    body2.setLayoutX(210);
-    body2.setLayoutY(320);
-    body2.setRotate(3);
+    body2.setMaxWidth(boxWidth - boxInnerPadding * 2);
+    body2.setLayoutX(boxInnerPadding);
+    body2.setLayoutY(boxInnerPadding);
     body2.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
-    
-    String bodyText3 = "SemSync makes managing your courses simple and efficient. Whether you are adding, editing, or reviewing your planned subjects, SemSync provides clear prompts and easy-to-use tools to guide you every step of the way.";
-    Label body3 = new Label(bodyText2);
+    box2.getChildren().add(body2);
+
+    // Box 3 (restored)
+    Pane box3 = new Pane();
+    box3.setLayoutX(160);
+    box3.setLayoutY(200 + (boxHeight + 20) * 2);
+    box3.setPrefWidth(boxWidth);
+    box3.setPrefHeight(boxHeight + 80);
+    box3.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+    Label body3 = new Label(bodyText3);
     body3.setFont(Fonts.loadMontserratRegular(24));
     body3.setWrapText(true);
-    body3.setMaxWidth(570);
-    body3.setLayoutX(200);
-    body3.setLayoutY(495);
-    body3.setRotate(3);
+    body3.setMaxWidth(boxWidth - boxInnerPadding * 2);
+    body3.setLayoutX(boxInnerPadding);
+    body3.setLayoutY(boxInnerPadding);
     body3.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
+    box3.getChildren().add(body3);
 
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
@@ -187,13 +224,13 @@ public class About {
     hRed.setOpacity(0.26);
     hRed.setMouseTransparent(true);
 
-    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title, body1, body2, body3);
+    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title, box1, box2, box3);
 
     // Go Back Button 
     Button goBackButton = new Button("Go Back");
     goBackButton.getStyleClass().add("btn-back");
     goBackButton.setLayoutX(1220);
-    goBackButton.setLayoutY(650);
+    goBackButton.setLayoutY(700);
     goBackButton.setPrefWidth(250);
     goBackButton.setPrefHeight(50);
     goBackButton.setFont(Fonts.loadSensaWild(40));

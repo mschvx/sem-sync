@@ -161,7 +161,7 @@ public class References {
     Button goBackButton = new Button("Go Back");
     goBackButton.getStyleClass().add("btn-back");
     goBackButton.setLayoutX(1220);
-    goBackButton.setLayoutY(650);
+    goBackButton.setLayoutY(700);
     goBackButton.setPrefWidth(250);
     goBackButton.setPrefHeight(50);
     goBackButton.setFont(Fonts.loadSensaWild(40));
