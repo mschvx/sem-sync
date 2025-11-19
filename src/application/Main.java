@@ -35,6 +35,11 @@ public class Main extends Application {
 
     Path path = Path.of(System.getProperty("user.dir"));
 
+    // Track whether a user is currently logged in
+    public static boolean isLoggedIn = false;
+    // Currently logged-in user 
+    public static User loggedInUser = null; // null start with it if no one using it yet
+
     // Track consecutive wrong login attempts
     private int wrongAttempts = 0;
     // Load method to get the data from CSV file
@@ -414,6 +419,9 @@ public class Main extends Application {
                     }
 
                     if (currentUser != null) {
+                        // mark logged in and store user
+                        isLoggedIn = true;
+                        loggedInUser = currentUser;
                         // successful login: reset attempts and background; restore tagline; remove overlay if present
                         wrongAttempts = 0;
                         root.setStyle("");

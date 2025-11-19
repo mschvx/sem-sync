@@ -168,8 +168,12 @@ public class References {
     root.getChildren().add(goBackButton);
 
     goBackButton.setOnAction(e -> {
-        Main main = new Main();
-        main.start(primaryStage);
+        if (Main.isLoggedIn) {
+            new Dashboard().showDashboard(primaryStage, Main.loggedInUser);
+        } else {
+            Main main = new Main();
+            main.start(primaryStage);
+        }
     });
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();

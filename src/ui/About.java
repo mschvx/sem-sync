@@ -201,8 +201,12 @@ public class About {
 
     // Go Back event handler
     goBackButton.setOnAction(e -> {
-        Main main = new Main();
-        main.start(primaryStage);
+        if (Main.isLoggedIn) { // for the boolean is logged in go to main, else go to the dashboard
+            new Dashboard().showDashboard(primaryStage, Main.loggedInUser);
+        } else {
+            Main main = new Main();
+            main.start(primaryStage);
+        }
     });
 
     // basic window properties
