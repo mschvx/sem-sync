@@ -25,6 +25,7 @@ import javafx.collections.FXCollections;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
+import javafx.scene.input.MouseEvent;
 
 public class Dashboard {
 
@@ -218,10 +219,39 @@ public class Dashboard {
 
         root.getChildren().addAll(sidebar, content, menuBtn);
 
+        // --- Profile image ---
+        final Image profile1 = new Image(new File("Elements/Profile1.png").toURI().toString());
+        final Image profile2 = new Image(new File("Elements/Profile2.png").toURI().toString());
+        final ImageView profileView = new ImageView(profile1);
+        profileView.setPreserveRatio(true);
+        profileView.setFitWidth(200); 
+        // bind to scene 
+        profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(0));
+        profileView.setLayoutY(10);
+        root.getChildren().add(profileView);
+        profileView.toFront();
+
+        // profile animation
+        final Timeline profileTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+            if (profileView.getImage() == profile1) {
+                profileView.setImage(profile2);
+            } else {
+                profileView.setImage(profile1);
+            }
+        }));
+        profileTimeline.setCycleCount(Timeline.INDEFINITE);
+
+        profileView.setOnMouseEntered(ev -> profileTimeline.play());
+        profileView.setOnMouseExited(ev -> {
+            profileTimeline.stop();
+            profileView.setImage(profile1);
+        });
+
+
         // Make the eye follow the mouse cursor by rotating the eye image around its center
         final javafx.scene.transform.Rotate eyeRotate = new javafx.scene.transform.Rotate(0, 0, 0);
         eyeView.getTransforms().add(eyeRotate);
-        scene.setOnMouseMoved(ev -> {
+        scene.addEventFilter(MouseEvent.MOUSE_MOVED, ev -> {
             try {
                 javafx.geometry.Bounds localBounds = eyeView.getBoundsInLocal();
                 double pivotLocalX = localBounds.getWidth() * 0.5;
@@ -274,6 +304,8 @@ public class Dashboard {
                 tMenu.setToX(menuNudge);
                 tSidebar.play(); tContent.play(); tMenu.play();
                 menuBtn.toFront();
+                //  profile stays on top of everything
+                try { profileView.toFront(); } catch (Exception ex) { }
                 open.set(true);
             } else {
                 // if close then slide sidebar out, shift content back, then hide
@@ -284,7 +316,7 @@ public class Dashboard {
                 tContent.setToX(0);
                 TranslateTransition tMenu = new TranslateTransition(Duration.millis(260), menuBtn);
                 tMenu.setToX(0);
-                tSidebar.setOnFinished(ev -> { sidebar.setVisible(false); menuBtn.toFront(); });
+                tSidebar.setOnFinished(ev -> { sidebar.setVisible(false); menuBtn.toFront(); try { profileView.toFront(); } catch (Exception ex) {} });
                 tSidebar.play(); tContent.play(); tMenu.play();
                 open.set(false);
             }
