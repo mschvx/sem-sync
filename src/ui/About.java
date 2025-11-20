@@ -60,7 +60,7 @@ public class About {
     bandView.setPreserveRatio(true);
     bandView.setFitWidth(750);
     bandView.setLayoutX(790);
-    bandView.setLayoutY(-20);
+    bandView.setLayoutY(-30);
     bandView.setRotate(4);
     root.getChildren().add(bandView);
     Timeline bandTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
