@@ -184,3 +184,18 @@
     -fx-text-fill: white;
     -fx-border-color: rgba(255,255,255,0.12);
 }
+
+.combo-box .list-cell {
+    -fx-padding: 5 10 5 10; 
+    -fx-alignment: CENTER-LEFT;
+    -fx-text-fill: black; 
+    -fx-font-size: 18px; 
+}
+
+.combo-box-base > .text-field {
+    -fx-padding: 5 10 5 10; 
+    -fx-alignment: CENTER-LEFT;
+    -fx-text-fill: black; 
+    -fx-font-size: 18px; 
+}
+

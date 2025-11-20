@@ -2,12 +2,22 @@ package ui;
 
 import application.Fonts;
 import application.Main;
+import courses.Course;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -337,14 +347,30 @@ public class Dashboard {
         content.getChildren().add(greetLabel);
 
         // -- Dropdown --
-        ComboBox<String> dropdown = new ComboBox<>();
-        dropdown.getItems().addAll("From", "dataset", "add kau");
+        ComboBox<Course> dropdown = new ComboBox<>();
         dropdown.setPromptText("Select course:");
         dropdown.setLayoutX(220);
         dropdown.setLayoutY(180);
         dropdown.setPrefWidth(400);
-        dropdown.setStyle("-fx-font-size: 18px;");
+        dropdown.setStyle("-fx-font-size: 18px;"); 
+        
+        dropdown.setCellFactory(listView -> new ListCell<Course>() {
+            protected void updateItem(Course item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) setText(null);
+                else setText(item.getCourseCode() + " - " + item.getCourseTitle() + " - Units: " + item.getUnits() + " - Section: " + item.getSection() + " - " + item.getTimes() + " - " + item.getDays());
 
+            }
+        });
+
+        dropdown.setButtonCell(new ListCell<Course>() {
+            protected void updateItem(Course item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) setText(null);
+                else setText(item.getCourseCode() + " - " + item.getCourseTitle() + " - Units: " + item.getUnits() + " - Section: " + item.getSection() + " - " + item.getTimes() + " - " + item.getDays());
+            }
+        });
+        
         // -- Buttons --
         Button btnAdd = new Button("Add");
         btnAdd.setLayoutX(220);
@@ -364,17 +390,122 @@ public class Dashboard {
         itemsLabel.setLayoutX(220);
         itemsLabel.setLayoutY(330);
 
-        ObservableList<String> listItems = FXCollections.observableArrayList();
-        listItems.add("None");
-        ListView<String> listView = new ListView<>(listItems);
+        ObservableList<Course> listItems = FXCollections.observableArrayList();
+        ListView<Course> listView = new ListView<>(listItems);
         listView.setLayoutX(220);
         listView.setLayoutY(370);
         listView.setPrefWidth(1000);
-        listView.setPrefHeight(420);
+        listView.setPrefHeight(420);   
+        
+        listView.setCellFactory(lv -> new ListCell<Course>() {
+            protected void updateItem(Course item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getCourseCode() + " - " + item.getCourseTitle() + 
+                            " - Units: " + item.getUnits() + 
+                            " - Section: " + item.getSection() + 
+                            " - " + item.getTimes() + 
+                            " - " + item.getDays());
+                }
+            }
+        });
 
+        listView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+        });
+        
+        ObservableList<Course> list = FXCollections.<Course>observableArrayList();
+        Path folder = Paths.get("Database/ICS_Dataset");
+        Path file = folder.resolve("course_offerings.csv");
+        
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
+            
+            reader.readLine();
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+
+                String[] parts = line.split(",");
+                
+                if (line.isEmpty()) {
+                    continue;
+                }               
+
+                String courseCode = parts[0].trim();
+                String courseName = parts[1].trim();
+                int units;
+                
+                try {
+                	units = Integer.parseInt(parts[2].trim());
+                } catch (NumberFormatException nfe) {
+                	continue;
+                }
+                
+                String section = parts[3].trim();
+                String times = parts[4].trim();
+                String days = parts[5].trim();
+                String rooms = parts[6].trim();
+
+                list.add(new Course(courseCode, courseName, units, section,times, days, rooms));
+            }
+        } catch(IOException error) {
+        	System.out.print("Error ahahaha");
+        }
+        
+        dropdown.getItems().addAll(list);             
+        
+        btnAdd.setOnMouseClicked(e -> {      
+        	Course selectedCourse = dropdown.getValue();
+        	
+        	if(selectedCourse == null) {
+        		System.out.println("error ahahah"); //Placeholder error
+        		return;        		
+        	}
+        	
+        	for(Course c: user.getCourses()) {
+        		if((c.getCourseCode().equals(selectedCourse.getCourseCode()) && c.getSection().equals(selectedCourse.getSection())) || c.getCourseCode().equals(selectedCourse.getCourseCode())) {
+        			System.out.println("error"); //Placeholder error
+        			return;
+        		}
+        	}
+        	
+        	for(Course c: user.getCourses()) {
+        		if((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
+        			System.out.println("error");
+        			return;
+        		}
+        	}
+        	
+        	boolean exists = list.stream().anyMatch(c-> c.getCourseCode().equals(selectedCourse.getCourseCode()) && c.getSection().equals(selectedCourse.getSection()));
+        	
+        	if(!exists) {
+        		System.out.println("error"); //Placeholder error
+        		return;
+        	}
+        	
+        	// No condition yet when course is not part of curriculum since the proper loading of the databases does not exist yet
+        	
+            listItems.add(selectedCourse);
+        	user.addCourse(selectedCourse);
+        });
+        
+        btnDelete.setOnMouseClicked( e-> {
+        	Course selected = listView.getSelectionModel().getSelectedItem();
+        	
+        	if(selected == null) {
+        		System.out.println("error"); //Placeholder error
+        		return;
+        	}
+        	
+        	listItems.remove(selected);
+        	user.getCourses().remove(selected);
+        });
+        
         // Add to pane
         content.getChildren().addAll(dropdown, btnAdd, btnDelete, itemsLabel, listView);
-
+        
         primaryStage.show();
     }
-}
+    }
