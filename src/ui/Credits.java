@@ -141,6 +141,21 @@ public class Credits {
     title.setLayoutY(100);
     title.setRotate(3);
 
+    // Intro text
+    Pane introBox = new Pane();
+    introBox.setLayoutX(200);
+    introBox.setLayoutY(190);
+    introBox.setPrefWidth(570);
+    introBox.setPrefHeight(50);
+    introBox.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+    Label introLabel = new Label("Here are the developers who brought this application to life!");
+    introLabel.setFont(Fonts.loadMontserratRegular(18));
+    introLabel.setWrapText(true);
+    introLabel.setLayoutX(12);
+    introLabel.setLayoutY(15);
+    introLabel.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
+    introBox.getChildren().add(introLabel);
+
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
     hYellow.setOpacity(0.26);
@@ -152,7 +167,7 @@ public class Credits {
     hRed.setOpacity(0.26);
     hRed.setMouseTransparent(true);
 
-    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title);
+    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, introBox, title);
 
     // Go Back Button
     Button goBackButton = new Button("Go Back");
