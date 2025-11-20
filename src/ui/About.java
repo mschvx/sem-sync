@@ -35,6 +35,8 @@ public class About {
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
         // tutorial images 1, 2, 3, and text
         final Timeline[] tutTimeline = new Timeline[1];
+        final ImageView[] tutViews = new ImageView[3];
+        final Image[] origTutImages = new Image[3];
         try {
             Image tut1 = new Image("file:Elements/1.png");
             Image tut2 = new Image("file:Elements/2.png");
@@ -86,6 +88,14 @@ public class About {
             tutText3.setFont(Fonts.loadComingSoon(50));
             tutText3.setLayoutX(1100);
             tutText3.setLayoutY(600);
+
+            //arrays for animation
+            tutViews[0] = tut1View;
+            tutViews[1] = tut2View;
+            tutViews[2] = tut3View;
+            origTutImages[0] = tut1;
+            origTutImages[1] = tut2;
+            origTutImages[2] = tut3;
 
             root.getChildren().addAll(tut1View, arrowViewImg1, arrowViewImg2, tut2View, tut3View, tutText1, tutText2, tutText3);
 
@@ -145,12 +155,29 @@ public class About {
     bandView.setCursor(Cursor.HAND);
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
-        if (tutTimeline[0] != null) tutTimeline[0].pause(); // pause animations when hovered over the banderitas
         bandView.setImage(consume);
+        // replace tutorial images with once/twice/thrice variants (creepy)
+        try {
+            Image once = new Image("file:Elements/yourenotsupposedtobehere/once.png");
+            Image twice = new Image("file:Elements/yourenotsupposedtobehere/twice.png");
+            Image thrice = new Image("file:Elements/yourenotsupposedtobehere/thrice.png");
+            if (tutViews[0] != null) tutViews[0].setImage(once);
+            if (tutViews[1] != null) tutViews[1].setImage(twice);
+            if (tutViews[2] != null) tutViews[2].setImage(thrice);
+        } catch (Exception ex) {
+            // ignore missing replacements
+        }
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
-        if (tutTimeline[0] != null) tutTimeline[0].play();
+        // restore original tutorial images
+        try {
+            if (tutViews[0] != null && origTutImages[0] != null) tutViews[0].setImage(origTutImages[0]);
+            if (tutViews[1] != null && origTutImages[1] != null) tutViews[1].setImage(origTutImages[1]);
+            if (tutViews[2] != null && origTutImages[2] != null) tutViews[2].setImage(origTutImages[2]);
+        } catch (Exception ex) {
+            // ignore
+        }
     });
 
     
