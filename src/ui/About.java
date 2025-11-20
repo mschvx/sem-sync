@@ -33,16 +33,84 @@ public class About {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
-        // add Info.png 
+        // tutorial images 1, 2, 3, and text
+        final Timeline[] tutTimeline = new Timeline[1];
         try {
-            Image infoImage = new Image("file:Elements/Info.png");
-            ImageView infoView = new ImageView(infoImage);
-            infoView.setLayoutX(0);
-            infoView.setLayoutY(30);
-            infoView.setFitHeight(750);
-            root.getChildren().add(infoView);
+            Image tut1 = new Image("file:Elements/1.png");
+            Image tut2 = new Image("file:Elements/2.png");
+            Image tut3 = new Image("file:Elements/3.png");
+            Image arrowImg = new Image("file:Elements/arrow.png");
+            ImageView tut1View = new ImageView(tut1);
+            tut1View.setFitWidth(200);
+            tut1View.setPreserveRatio(true);
+            tut1View.setLayoutX(870);
+            tut1View.setLayoutY(200);
+
+            ImageView arrowViewImg1 = new ImageView(arrowImg);
+            arrowViewImg1.setFitWidth(180);
+            arrowViewImg1.setPreserveRatio(true);
+            arrowViewImg1.setLayoutX(1150);
+            arrowViewImg1.setLayoutY(300);
+            
+            ImageView arrowViewImg2 = new ImageView(arrowImg);
+            arrowViewImg2.setFitWidth(180);
+            arrowViewImg2.setPreserveRatio(true);
+            arrowViewImg2.setLayoutX(1090);
+            arrowViewImg2.setLayoutY(480);
+            arrowViewImg2.setScaleX(-1);
+
+        
+            ImageView tut2View = new ImageView(tut2);
+            tut2View.setFitWidth(250);
+            tut2View.setPreserveRatio(true);
+            tut2View.setLayoutX(1300);
+            tut2View.setLayoutY(360);
+
+            ImageView tut3View = new ImageView(tut3);
+            tut3View.setFitWidth(200);
+            tut3View.setPreserveRatio(true);
+            tut3View.setLayoutX(900);
+            tut3View.setLayoutY(570);
+
+            Label tutText1 = new Label("Browse courses");
+            tutText1.setFont(Fonts.loadComingSoon(50));
+            tutText1.setLayoutX(1060);
+            tutText1.setLayoutY(240);
+
+            Label tutText2 = new Label("Click to add");
+            tutText2.setFont(Fonts.loadComingSoon(50));
+            tutText2.setLayoutX(1080);
+            tutText2.setLayoutY(420);
+
+            Label tutText3 = new Label("Instant results!");
+            tutText3.setFont(Fonts.loadComingSoon(50));
+            tutText3.setLayoutX(1100);
+            tutText3.setLayoutY(600);
+
+            root.getChildren().addAll(tut1View, arrowViewImg1, arrowViewImg2, tut2View, tut3View, tutText1, tutText2, tutText3);
+
+            // animation for 1 2 3
+            tutTimeline[0] = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+                if (tut1View.getRotate() == 3) {
+                    tut1View.setRotate(0);
+                } else {
+                    tut1View.setRotate(3);
+                }
+                if (tut3View.getRotate() == 3) {
+                    tut3View.setRotate(0);
+                } else {
+                    tut3View.setRotate(3);
+                }
+                if (tut2View.getRotate() == -3) {
+                    tut2View.setRotate(0);
+                } else {
+                    tut2View.setRotate(-3);
+                }
+            }));
+            tutTimeline[0].setCycleCount(Timeline.INDEFINITE);
+            tutTimeline[0].play();
         } catch (Exception ex) {
-            // ignore if missing
+            // ignore if tutorial assets are missing
         }
     
     // Notebook image
@@ -60,7 +128,7 @@ public class About {
     bandView.setPreserveRatio(true);
     bandView.setFitWidth(750);
     bandView.setLayoutX(790);
-    bandView.setLayoutY(-30);
+    bandView.setLayoutY(-20);
     bandView.setRotate(4);
     root.getChildren().add(bandView);
     Timeline bandTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
@@ -77,10 +145,12 @@ public class About {
     bandView.setCursor(Cursor.HAND);
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
+        if (tutTimeline[0] != null) tutTimeline[0].pause(); // pause animations when hovered over the banderitas
         bandView.setImage(consume);
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
+        if (tutTimeline[0] != null) tutTimeline[0].play();
     });
 
     
