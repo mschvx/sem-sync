@@ -2,6 +2,7 @@ package ui;
 
 import application.Fonts;
 import application.Main;
+import application.Sizing;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -98,6 +99,9 @@ public class Register {
     }
 
     public void showRegister(Stage primaryStage) {
+    	
+        double baseWidth = Sizing.BASE_WIDTH;
+        double baseHeight = Sizing.BASE_HEIGHT;
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
@@ -412,7 +416,29 @@ public class Register {
         primaryStage.setWidth(visualBounds.getWidth());
         primaryStage.setHeight(visualBounds.getHeight());
         primaryStage.show();
-    }
+        
+        // Scaling and centering logic
+        Runnable updateLayout = () -> {
+            double scaleX = scene.getWidth() / baseWidth;
+            double scaleY = scene.getHeight() / baseHeight;
+            double scale = Math.max(scaleX, scaleY);
+
+            root.setScaleX(scale);
+            root.setScaleY(scale);
+
+            root.setTranslateX(baseWidth * (scale - 1) / 2);
+            root.setTranslateY(baseHeight * (scale - 1) / 2);
+        };
+
+        // Apply initially and on resize
+        updateLayout.run();
+        scene.widthProperty().addListener((obs, old, newVal) -> updateLayout.run());
+        scene.heightProperty().addListener((obs, old, newVal) -> updateLayout.run());
+        
+        javafx.application.Platform.runLater(() -> updateLayout.run());
+        
+        
+    }   
     
     
     // method for detecting special character inputs

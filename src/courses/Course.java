@@ -47,4 +47,6 @@ public class Course {
 	public String getRooms() {
 		return this.rooms;
 	}
+	
+	// TEST
 }
