@@ -1,6 +1,7 @@
 package users;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import courses.Course;
 
@@ -8,19 +9,14 @@ public class User {
 
     private String username;
     private String password;
-    private String degree;
-    private ArrayList<Course> courses = new ArrayList<>();
-    
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
-        this.degree = "";
-    }
+    private DegreeProgram degree;
+    private List<Curriculum> curricCourses;
 
-    public User(String username, String password, String degree) {
+    public User(String username, String password, DegreeProgram degree) {
         this.username = username;
         this.password = password;
         this.degree = degree;
+        this.curricCourses = CurriculumLoader.loadfromCSV(degree.getCurriculumCSV());
     }
     
     public String getUsername() {
@@ -31,15 +27,12 @@ public class User {
         return this.password;
     }
 
-    public String getDegree() {
+    public DegreeProgram getDegree() {
         return this.degree;
     }
     
-    public void addCourse(Course course) {    	
-    	courses.add(course);
+    public List<Curriculum> getCurriculumCourses(){
+    	return this.curricCourses;
     }
     
-    public ArrayList<Course> getCourses() {
-    	return this.courses;
-    }
 }
