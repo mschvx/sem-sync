@@ -50,6 +50,7 @@ public class Dashboard {
     // Show dashboard for a specific user (so we can display degree greeting)
     public void showDashboard(Stage primaryStage, User user) {
         Pane root = new Pane();
+        root.getStyleClass().add("root");
         Scene scene = new Scene(root, 1536, 864);
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
 
@@ -232,6 +233,7 @@ public class Dashboard {
 
         // --- Contents ---
         Pane content = new Pane();
+        content.setStyle("-fx-background-color: transparent;");
         content.setLayoutX(0);
         content.setLayoutY(0);
 
@@ -243,6 +245,7 @@ public class Dashboard {
         contentScroll.setPrefHeight(visualBounds.getHeight());
         contentScroll.setFitToWidth(true);
         contentScroll.setPannable(true);
+        contentScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         root.getChildren().addAll(sidebar, contentScroll, menuBtn);
 
@@ -255,6 +258,7 @@ public class Dashboard {
         // bind to scene 
         profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(0));
         profileView.setLayoutY(10);
+        profileView.getStyleClass().add("profile-image");
         root.getChildren().add(profileView);
         profileView.toFront();
 
@@ -361,6 +365,7 @@ public class Dashboard {
         greetLabel.setFont(greetFont);
         greetLabel.setLayoutX(220);
         greetLabel.setLayoutY(60);
+        greetLabel.setStyle("-fx-text-fill: black;");
         content.getChildren().add(greetLabel);
 
         // -- Dropdown --
@@ -417,6 +422,7 @@ public class Dashboard {
         itemsLabel.setFont(Fonts.loadMontserratRegular(28));
         itemsLabel.setLayoutX(220);
         itemsLabel.setLayoutY(calY + calHeight + 24);
+        itemsLabel.setStyle("-fx-text-fill: black;");
 
         ObservableList<Course> listItems = FXCollections.observableArrayList();
         ListView<Course> listView = new ListView<>(listItems);

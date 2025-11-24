@@ -211,7 +211,7 @@
     -fx-stroke: #1565C0;
 }
 .calendar-grid-line {
-    -fx-fill: #E3F2FD;
+    -fx-fill: #1565C0; 
 }
 .calendar-day-label {
     -fx-text-fill: #1565C0;

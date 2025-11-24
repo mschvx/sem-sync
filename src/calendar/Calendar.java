@@ -81,14 +81,8 @@ public class Calendar {
             root.getChildren().add(dayLabel);
         }
 
-        // Draw hourly grid line and corresponding time label
+        // Draw time labels for each hour row
         for (int r = 0; r < rows; r++) {
-            double y = headerHeight + (r + 1) * rowHeight;
-
-            Rectangle line = new Rectangle(timeColWidth, y, width - timeColWidth, 1);
-            line.setFill(Color.web("#E3F2FD"));
-            root.getChildren().add(line);
-
             int hourStart = 7 + r;
             String labelText = hourStart + "-" + (hourStart + 1);
 
