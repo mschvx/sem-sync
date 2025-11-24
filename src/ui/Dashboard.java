@@ -24,11 +24,19 @@ import javafx.stage.Stage;
 import users.DegreeLookup;
 import users.DegreeProgram;
 import users.User;
+import users.CurriculumLoader;
+import users.Curriculum;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.scene.text.Font;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
+ 
+import calendar.Calendar;
 import javafx.scene.control.ListView;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
@@ -227,7 +235,16 @@ public class Dashboard {
         content.setLayoutX(0);
         content.setLayoutY(0);
 
-        root.getChildren().addAll(sidebar, content, menuBtn);
+        // Put content to make scrollable
+        javafx.scene.control.ScrollPane contentScroll = new javafx.scene.control.ScrollPane(content);
+        contentScroll.setLayoutX(0);
+        contentScroll.setLayoutY(0);
+        contentScroll.setPrefWidth(visualBounds.getWidth());
+        contentScroll.setPrefHeight(visualBounds.getHeight());
+        contentScroll.setFitToWidth(true);
+        contentScroll.setPannable(true);
+
+        root.getChildren().addAll(sidebar, contentScroll, menuBtn);
 
         // --- Profile image ---
         final Image profile1 = new Image(new File("Elements/Profile1.png").toURI().toString());
@@ -384,18 +401,29 @@ public class Dashboard {
         btnDelete.setPrefWidth(120);
         btnDelete.setFont(Fonts.loadSensaWild(24));
 
+        // calendar
+        double calX = 220;
+        double calY = 330;
+        double calWidth = 1200;
+        double calHeight = 560; 
+
+        Calendar calendar = new Calendar(calWidth, calHeight); // call the calendar from the calendar package and make a new calendar
+        Pane calendarPane = calendar.getView();
+        calendarPane.setLayoutX(calX);
+        calendarPane.setLayoutY(calY);
+
         // -- List of items added by user --
         Label itemsLabel = new Label("Your Items");
         itemsLabel.setFont(Fonts.loadMontserratRegular(28));
         itemsLabel.setLayoutX(220);
-        itemsLabel.setLayoutY(330);
+        itemsLabel.setLayoutY(calY + calHeight + 24);
 
         ObservableList<Course> listItems = FXCollections.observableArrayList();
         ListView<Course> listView = new ListView<>(listItems);
         listView.setLayoutX(220);
-        listView.setLayoutY(370);
-        listView.setPrefWidth(1000);
-        listView.setPrefHeight(420);   
+        listView.setLayoutY(calY + calHeight + 90);
+        listView.setPrefWidth(1200);
+        listView.setPrefHeight(260);   
         
         listView.setCellFactory(lv -> new ListCell<Course>() {
             protected void updateItem(Course item, boolean empty) {
@@ -416,42 +444,54 @@ public class Dashboard {
         });
         
         ObservableList<Course> list = FXCollections.<Course>observableArrayList();
+
+        // Build a list of allowed curriculum course codes (used as reference)
+        List<String> allowedCourseCodes = new ArrayList<>();
+        if (program != null && program.getCurriculumCSV() != null) {
+            try {
+                List<Curriculum> curr = CurriculumLoader.loadfromCSV(program.getCurriculumCSV());
+                for (Curriculum c : curr) {
+                    if (c != null && c.getCourseCode() != null) {
+                        allowedCourseCodes.add(normalizeCourseCode(c.getCourseCode()));
+                    }
+                }
+            } catch (Exception ex) {
+                
+            }
+        }
+
+        // Always read the course_offerings.csv and add offerings that match the allowed curriculum codes.
         Path folder = Paths.get("Database/ICS_Dataset");
         Path file = folder.resolve("course_offerings.csv");
-        
         try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             String line;
-            
-            reader.readLine();
-
+            reader.readLine(); // skip header
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-
+                if (line.isEmpty()) continue;
                 String[] parts = line.split(",");
-                
-                if (line.isEmpty()) {
-                    continue;
-                }               
-
+                if (parts.length < 7) continue; // malformed
                 String courseCode = parts[0].trim();
                 String courseName = parts[1].trim();
-                int units;
-                
-                try {
-                	units = Integer.parseInt(parts[2].trim());
-                } catch (NumberFormatException nfe) {
-                	continue;
-                }
-                
+                int units = parseUnits(parts.length > 2 ? parts[2].trim() : "");
                 String section = parts[3].trim();
                 String times = parts[4].trim();
                 String days = parts[5].trim();
                 String rooms = parts[6].trim();
 
-                list.add(new Course(courseCode, courseName, units, section,times, days, rooms));
+                boolean matches = false;
+                if (!allowedCourseCodes.isEmpty()) {
+                    String norm = normalizeCourseCode(courseCode);
+                    if (allowedCourseCodes.contains(norm)) matches = true;
+                }
+
+                // If no allowed codes available, ignore, else only add matches
+                if (allowedCourseCodes.isEmpty() || matches) {
+                    list.add(new Course(courseCode, courseName, units, section, times, days, rooms));
+                }
             }
-        } catch(IOException error) {
-        	System.out.print("Error ahahaha");
+        } catch (IOException error) {
+            System.out.print("Error reading course_offerings.csv");
         }
         
         dropdown.getItems().addAll(list);             
@@ -485,10 +525,12 @@ public class Dashboard {
         		return;
         	}
         	
-        	// No condition yet when course is not part of curriculum since the proper loading of the databases does not exist yet
         	
             listItems.add(selectedCourse);
-        	user.addCourse(selectedCourse);
+            user.addCourse(selectedCourse);
+
+            // Add to calendar using the Calendar class 
+            calendar.addCourse(selectedCourse);
         });
         
         btnDelete.setOnMouseClicked( e-> {
@@ -501,11 +543,45 @@ public class Dashboard {
         	
         	listItems.remove(selected);
         	user.getCourses().remove(selected);
+            calendar.removeCourse(selected);
         });
         
         // Add to pane
-        content.getChildren().addAll(dropdown, btnAdd, btnDelete, itemsLabel, listView);
+        Pane bottomSpacer = new Pane();
+        bottomSpacer.setLayoutX(220);
+        bottomSpacer.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 10);
+        bottomSpacer.setPrefWidth(1);
+        bottomSpacer.setPrefHeight(400);
+
+        content.getChildren().addAll(dropdown, btnAdd, btnDelete, calendarPane, itemsLabel, listView, bottomSpacer);
         
         primaryStage.show();
+    }
+
+    
+
+    // for formatting well
+    private static int parseUnits(String raw) {
+        if (raw == null) return 0;
+        raw = raw.trim();
+        if (raw.isEmpty()) return 0;
+        Pattern p = Pattern.compile("-?\\d+");
+        Matcher m = p.matcher(raw);
+        if (m.find()) {
+            try {
+                return Integer.parseInt(m.group());
+            } catch (NumberFormatException nfe) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    // normalize course code for comparison with specific course dataset and general course dataset
+    private static String normalizeCourseCode(String raw) {
+        if (raw == null) return "";
+        String s = raw.trim().toUpperCase();
+        s = s.replaceAll("\\s+", " ");
+        return s;
     }
     }

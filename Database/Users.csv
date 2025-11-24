@@ -1,8 +1,9 @@
 
-test,test,BachelorCS
-test1,111,PHDCS
-1,1,PHDCS
-lee,lee,MasterIT
+bscs,bscs,BachelorCS
+mit,mit,MasterIT
+phd,phd,PHDCS
+mscs,mscs,MasterCS
 sironeil,oneil,MasterIT
 fuu,123,BachelorCS
 JohnChristian,123,BachelorCS
+test,test,BachelorCS

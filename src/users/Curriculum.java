@@ -1,10 +1,5 @@
 package users;
 
-import courses.Course;
-import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Curriculum {
 
 	private String courseCode;

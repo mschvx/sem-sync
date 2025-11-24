@@ -199,3 +199,55 @@
     -fx-font-size: 18px; 
 }
 
+/* Calendar styling */
+.calendar-root {
+    -fx-background-color: transparent;
+}
+.calendar-timecol {
+    -fx-fill: #1565C0; /* blue */
+}
+.calendar-header {
+    -fx-fill: #FFD54F; /* yellow */
+    -fx-stroke: #1565C0;
+}
+.calendar-grid-line {
+    -fx-fill: #E3F2FD;
+}
+.calendar-day-label {
+    -fx-text-fill: #1565C0;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+.calendar-time-label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+}
+.calendar-block {
+    -fx-fill: #1976D2; /* block fill */
+    -fx-stroke: #FFD54F; /* border */
+}
+.calendar-block-label {
+    -fx-text-fill: #FFFDE7;
+    -fx-font-size: 14px;
+}
+
+/* Profile image styling */
+.profile-image {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 8, 0.5, 0, 3);
+    -fx-border-radius: 60px;
+}
+
+/* Primary buttons for Dashboard */
+.btn-primary {
+    -fx-background-color: linear-gradient(#fffb8f, #ffd54f);
+    -fx-border-color: #f7c948;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-text-fill: #0b3a66;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 8, 0.5, 0, 2);
+}
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(#fff59d, #ffeb3b);
+}
+

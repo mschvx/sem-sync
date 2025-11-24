@@ -22,7 +22,7 @@ public final class Fonts {
         Font f = Font.loadFont(uri, size);
         if (f == null) {
             try {
-                return Font.font("Montserrat", size); // default
+                return Font.font("Montserrat", size); // default IF HINDI NAGLOAD
             } catch (Exception ex) {
                 return Font.getDefault();
             }
