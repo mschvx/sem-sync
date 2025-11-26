@@ -3,6 +3,8 @@ package ui;
 import application.Fonts;
 import application.Main;
 import courses.Course;
+import courses.Laboratory;
+import courses.Lecture;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -450,6 +452,8 @@ public class Dashboard {
         });
         
         ObservableList<Course> list = FXCollections.<Course>observableArrayList();
+        ObservableList<Laboratory> labSections = FXCollections.<Laboratory>observableArrayList(); // Added if ever needed
+        ObservableList<Lecture> lecSections = FXCollections.<Lecture>observableArrayList(); // Added if ever needed
 
         // Build a list of allowed curriculum course codes (used as reference)
         List<String> allowedCourseCodes = new ArrayList<>();
@@ -484,6 +488,28 @@ public class Dashboard {
                 String times = parts[4].trim();
                 String days = parts[5].trim();
                 String rooms = parts[6].trim();
+                
+                if(!isLabSection(section)) {
+                	lecSections.add(new Lecture(courseCode, courseName, units, section, times, days, rooms));
+                }
+                
+                if(isLabSection(section)) {
+                	
+                	Laboratory lab = new Laboratory(courseCode, courseName, units, section, times, days, rooms);
+                	
+                	labSections.add(lab);
+                	
+                	for(Lecture l : lecSections) {
+                		
+                		String[] labSecParts = section.split("-");
+                		String lec = labSecParts[0].trim();
+                		
+                		if(lec.equals(l.getSection())) {
+                			l.addLabSection(lab);
+                		}
+                	}
+                }
+                
 
                 boolean matches = false;
                 if (!allowedCourseCodes.isEmpty()) {
@@ -511,10 +537,12 @@ public class Dashboard {
         	}
         	
         	for(Course c: user.getCourses()) {
-        		if((c.getCourseCode().equals(selectedCourse.getCourseCode()) && c.getSection().equals(selectedCourse.getSection())) || c.getCourseCode().equals(selectedCourse.getCourseCode())) {
-        			System.out.println("error"); //Placeholder error
-        			return;
-        		}
+        		if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
+        			    c.getSection().equals(selectedCourse.getSection())) {
+        			    System.out.println("error"); 
+        			    return;
+        			}
+
         	}
         	
         	for(Course c: user.getCourses()) {
@@ -531,6 +559,10 @@ public class Dashboard {
         		return;
         	}
         	
+        	
+        	//if(selectedCourse instanceof Lecture) {
+        		
+        	//}
         	
             listItems.add(selectedCourse);
             user.addCourse(selectedCourse);
@@ -590,4 +622,10 @@ public class Dashboard {
         s = s.replaceAll("\\s+", " ");
         return s;
     }
+    
+    private boolean isLabSection(String text) {
+        return text != null && text.contains("-");
+    }
+    
+    
     }
