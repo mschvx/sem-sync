@@ -487,28 +487,7 @@ public class Dashboard {
                 String section = parts[3].trim();
                 String times = parts[4].trim();
                 String days = parts[5].trim();
-                String rooms = parts[6].trim();
-                
-                if(!isLabSection(section)) {
-                	lecSections.add(new Lecture(courseCode, courseName, units, section, times, days, rooms));
-                }
-                
-                if(isLabSection(section)) {
-                	
-                	Laboratory lab = new Laboratory(courseCode, courseName, units, section, times, days, rooms);
-                	
-                	labSections.add(lab);
-                	
-                	for(Lecture l : lecSections) {
-                		
-                		String[] labSecParts = section.split("-");
-                		String lec = labSecParts[0].trim();
-                		
-                		if(lec.equals(l.getSection())) {
-                			l.addLabSection(lab);
-                		}
-                	}
-                }
+                String rooms = parts[6].trim();                            
                 
 
                 boolean matches = false;
@@ -519,7 +498,28 @@ public class Dashboard {
 
                 // If no allowed codes available, ignore, else only add matches
                 if (allowedCourseCodes.isEmpty() || matches) {
-                    list.add(new Course(courseCode, courseName, units, section, times, days, rooms));
+                	
+                    if(!isLabSection(section)) {
+                    	Lecture lec = new Lecture(courseCode, courseName, units, section, times, days, rooms);
+                    	lecSections.add(lec);
+                    	list.add(lec);
+                    	
+                    } else {
+                        Laboratory lab = new Laboratory(courseCode, courseName, units, section, times, days, rooms);
+                        labSections.add(lab);
+                        list.add(lab); 
+                        
+                        String[] labSecParts = section.split("-");
+                        String lec = labSecParts[0].trim();
+                        
+                    	for(Lecture l : lecSections) {               		
+                    		if(lec.equals(l.getSection())) {
+                    			l.addLabSection(lab);
+                    			lab.setlectureSection(l);
+                    		}
+                    	}
+
+                    }   
                 }
             }
         } catch (IOException error) {
@@ -560,15 +560,51 @@ public class Dashboard {
         	}
         	
         	
-        	//if(selectedCourse instanceof Lecture) {
-        		
-        	//}
-        	
-            listItems.add(selectedCourse);
-            user.addCourse(selectedCourse);
+        	if(selectedCourse instanceof Lecture) {
+                listItems.add(selectedCourse);
+                user.addCourse(selectedCourse);
+                calendar.addCourse(selectedCourse);
+                
+        	}  else if (selectedCourse instanceof Laboratory) {
+        	    Laboratory lab = (Laboratory) selectedCourse;
 
-            // Add to calendar using the Calendar class 
-            calendar.addCourse(selectedCourse);
+        	    Lecture parent = lab.getlectureSection(); 
+
+        	    if (parent != null) {
+        	        boolean parentInListItems = listItems.stream()
+        	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
+        	        boolean parentInUser = user.getCourses().stream()
+        	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
+
+        	        if (!parentInListItems) {
+        	            listItems.add(parent);
+        	        }
+        	        if (!parentInUser) {
+        	            user.addCourse(parent);
+        	        }
+        	        calendar.addCourse(parent); 
+        	    }
+
+        	    boolean labInListItems = listItems.stream()
+        	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
+        	    boolean labInUser = user.getCourses().stream()
+        	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
+
+        	    if (!labInListItems) {
+        	        listItems.add(lab);
+        	    }
+        	    if (!labInUser) {
+        	        user.addCourse(lab);
+        	    }
+        	    calendar.addCourse(lab);
+        	}
+        		else if(selectedCourse instanceof Course) {   
+        			
+                listItems.add(selectedCourse);
+                user.addCourse(selectedCourse);
+                calendar.addCourse(selectedCourse);        		
+        	}   	
+
         });
         
         btnDelete.setOnMouseClicked( e-> {
