@@ -27,7 +27,7 @@ public class Calendar {
     private final double height;
     private final double timeColWidth = 110;
 
-    private final int dayCount = 6;
+    private final int dayCount = 5;
 
     private final int rows = 12;
 
@@ -62,7 +62,7 @@ public class Calendar {
         root.getChildren().add(timeCol);
 
         // Add day header rectangles and labels
-        String[] dayNames = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
+        String[] dayNames = {"Monday","Tuesday","Wednesday","Thursday","Friday"};
         for (int d = 0; d < dayCount; d++) {
             double x = timeColWidth + d * cellWidth;
 
@@ -202,9 +202,9 @@ public class Calendar {
         return 0;
     }
 
-    // Converts day strings into a 6-day boolean array
+    // Converts day strings into a dayCount-sized boolean array
     private boolean[] parseDays(String raw) {
-        boolean[] flags = new boolean[6];
+        boolean[] flags = new boolean[dayCount];
         if (raw == null) return flags;
 
         String s = raw.toUpperCase();
@@ -230,8 +230,6 @@ public class Calendar {
             if (t.contains("W")) flags[2] = true;
             if (t.contains("F")) flags[4] = true;
 
-            // Saturday can appear as "SA" or sometimes just "S"
-            if (t.contains("SA") || (t.equals("S") && !t.contains("SU"))) flags[5] = true;
         }
 
         return flags;
