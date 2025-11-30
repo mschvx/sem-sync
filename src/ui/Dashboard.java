@@ -536,21 +536,7 @@ public class Dashboard {
         		return;        		
         	}
         	
-        	for(Course c: user.getCourses()) {
-        		if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
-        			    c.getSection().equals(selectedCourse.getSection())) {
-        			    System.out.println("error"); 
-        			    return;
-        			}
 
-        	}
-        	
-        	for(Course c: user.getCourses()) {
-        		if((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
-        			System.out.println("error");
-        			return;
-        		}
-        	}
         	
         	boolean exists = list.stream().anyMatch(c-> c.getCourseCode().equals(selectedCourse.getCourseCode()) && c.getSection().equals(selectedCourse.getSection()));
         	
@@ -561,48 +547,81 @@ public class Dashboard {
         	
         	
         	if(selectedCourse instanceof Lecture) {
+        		
+        			Course copyselectedCourse = (Course) selectedCourse;
+        			
+        			if(!courseChecker(copyselectedCourse, user)) {
+        				return;
+        			}
+        		
                 listItems.add(selectedCourse);
                 user.addCourse(selectedCourse);
-                calendar.addCourse(selectedCourse);
+                calendar.addCourse(selectedCourse, listItems);
                 
         	}  else if (selectedCourse instanceof Laboratory) {
         	    Laboratory lab = (Laboratory) selectedCourse;
+        	    Course copyselectedCourse = (Course) selectedCourse;
 
-        	    Lecture parent = lab.getlectureSection(); 
+        	    Lecture parent = lab.getlectureSection();
+        	    Course copyparent = (Course) parent;
+        	    
+        	    boolean labAdded = false;
+        	    
+        	    boolean labInListItems = listItems.stream()
+            	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
+            	    boolean labInUser = user.getCourses().stream()
+            	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
 
-        	    if (parent != null) {
+        			if(!courseChecker(copyselectedCourse, user)) {
+        				return;
+        			}
+            	    
+            	    
+            	    if (!labInListItems) {
+            	        listItems.add(lab);
+            	    }
+            	    if (!labInUser) {
+            	        user.addCourse(lab);
+            	    }
+            	    calendar.addCourse(lab, listItems);
+            	    labAdded = true;
+            	    
+
+        	    if (parent != null && labAdded == true) {
         	        boolean parentInListItems = listItems.stream()
         	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
         	        boolean parentInUser = user.getCourses().stream()
         	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
 
+        	        
+        			if(!courseChecker(copyparent, user)) {
+        				return;
+        			}       	        
+        	        
         	        if (!parentInListItems) {
         	            listItems.add(parent);
         	        }
         	        if (!parentInUser) {
         	            user.addCourse(parent);
         	        }
-        	        calendar.addCourse(parent); 
+        	        calendar.addCourse(parent, listItems); 
+        	    } else {
+        	    		return;
         	    }
 
-        	    boolean labInListItems = listItems.stream()
-        	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
-        	    boolean labInUser = user.getCourses().stream()
-        	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
 
-        	    if (!labInListItems) {
-        	        listItems.add(lab);
-        	    }
-        	    if (!labInUser) {
-        	        user.addCourse(lab);
-        	    }
-        	    calendar.addCourse(lab);
         	}
-        		else if(selectedCourse instanceof Course) {   
+        		else if(selectedCourse instanceof Course) {           			
         			
+        			Course copyselectedCourse = (Course) selectedCourse;
+        			
+        			if(!courseChecker(copyselectedCourse, user)) {
+        				return;
+        			}
+        			        			
                 listItems.add(selectedCourse);
                 user.addCourse(selectedCourse);
-                calendar.addCourse(selectedCourse);        		
+                calendar.addCourse(selectedCourse, listItems);        		
         	}   	
 
         });
@@ -615,9 +634,40 @@ public class Dashboard {
         		return;
         	}
         	
+        	if(selected instanceof Laboratory) {
+        		Laboratory selectedL = (Laboratory) selected;
+        		Lecture lec = selectedL.getlectureSection();
+        		
+        		listItems.remove(selectedL);
+        		listItems.remove(lec);
+        		user.getCourses().remove(selectedL);
+        		user.getCourses().remove(lec);
+        		
+        		calendar.removeCourse(selected);
+        		calendar.removeCourse(lec);    
+        		
+        		return;
+        		
+        	} else if(selected instanceof Lecture) {
+        		Lecture selectedLec = (Lecture) selected;
+        		
+        		for(Laboratory l: selectedLec.getLabSections()) {
+        		    boolean existsInUser = user.getCourses().stream().anyMatch(c ->
+        		                c.getCourseCode().equals(l.getCourseCode()) &&
+        		                c.getSection().equals(l.getSection())
+        		            );
+        		    
+        		    if(existsInUser) {
+        		    		listItems.remove(l);
+        		    		user.getCourses().remove(l);
+        		    		calendar.removeCourse(l);
+        		    }
+        		}
+        	}
+        	
         	listItems.remove(selected);
         	user.getCourses().remove(selected);
-            calendar.removeCourse(selected);
+        calendar.removeCourse(selected);    
         });
         
         // Add to pane
@@ -661,6 +711,26 @@ public class Dashboard {
     
     private boolean isLabSection(String text) {
         return text != null && text.contains("-");
+    }
+    
+    private boolean courseChecker(Course selectedCourse, User user) {
+	    	for(Course c: user.getCourses()) {
+	    		if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
+	    			    c.getSection().equals(selectedCourse.getSection())) {
+	    			    System.out.println("error"); 
+	    			    return false;
+	    			}
+	
+	    	}
+	    	
+	    	for(Course c: user.getCourses()) {
+	    		if((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
+	    			System.out.println("error");
+	    			return false;
+	    		}
+	    	}
+    		
+	    	return true;
     }
     
     
