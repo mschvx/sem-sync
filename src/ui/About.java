@@ -283,7 +283,7 @@ public class About {
     Label title = new Label("ABOUT SEM SYNC");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
-    title.setLayoutX(220);
+    title.setLayoutX(200);
     title.setLayoutY(100);
     title.setRotate(3);
 
@@ -303,7 +303,7 @@ public class About {
     box1.setLayoutY(210);
     box1.setPrefWidth(boxWidth);
     box1.setPrefHeight(boxHeight-20);
-    box1.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+    box1.setStyle("-fx-background-color: rgba(255,255,255,0.45); -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
     Label body1 = new Label(bodyText1);
     body1.setFont(Fonts.loadMontserratRegular(24));
     body1.setWrapText(true);
@@ -319,7 +319,7 @@ public class About {
     box2.setLayoutY(160 + boxHeight + 50);
     box2.setPrefWidth(boxWidth);
     box2.setPrefHeight(boxHeight+10);
-    box2.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+    box2.setStyle("-fx-background-color: rgba(255,255,255,0.45); -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
     Label body2 = new Label(bodyText2);
     body2.setFont(Fonts.loadMontserratRegular(24));
     body2.setWrapText(true);
@@ -335,7 +335,7 @@ public class About {
     box3.setLayoutY(200 + (boxHeight + 20) * 2);
     box3.setPrefWidth(boxWidth);
     box3.setPrefHeight(boxHeight + 80);
-    box3.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
+    box3.setStyle("-fx-background-color: rgba(255,255,255,0.45); -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
     Label body3 = new Label(bodyText3);
     body3.setFont(Fonts.loadMontserratRegular(24));
     body3.setWrapText(true);
