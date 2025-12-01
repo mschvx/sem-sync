@@ -74,16 +74,18 @@ public class Register {
                 }
 
                 String[] parts = line.split(",");
-
-                String username = parts[0].trim();
-                String password = parts[1].trim();
-
-                String degree = "";
-                if (parts.length >= 3) {
-                    degree = parts[2].trim();
+                // trim the five required register data
+                if (parts.length != 5) {
+                    
+                    continue;
                 }
+                String first = parts[0].trim();
+                String last = parts[1].trim();
+                String username = parts[2].trim();
+                String password = parts[3].trim();
+                String degree = parts[4].trim();
 
-                list.add(new User(username, password, degree));
+                list.add(new User(first, last, username, password, degree));
             }
 
         } catch (IOException e) {
@@ -118,25 +120,67 @@ public class Register {
 
         // Register text
         Label registerLabel = new Label("REGISTER");
-        Font registerFont = Font.loadFont(Fonts.SENSA_SERIF, 120);
+        Font registerFont = Font.loadFont(Fonts.SENSA_SERIF, 88);
         registerLabel.setFont(registerFont);
-        registerLabel.setLayoutX(150);
+        registerLabel.setLayoutX(120);
         registerLabel.setLayoutY(200);
         root.getChildren().add(registerLabel);
 
+        // First Name label and field 
+        Label firstNameLabel = new Label("First Name");
+        firstNameLabel.setFont(Font.loadFont(Fonts.COMING_SOON, 44));
+        firstNameLabel.setLayoutX(100);
+        firstNameLabel.setLayoutY(290);
+        root.getChildren().add(firstNameLabel);
+
+        TextField firstNameField = new TextField();
+        firstNameField.setLayoutX(100);
+        firstNameField.setLayoutY(360); // NASA 360 
+        firstNameField.setPrefWidth(600);
+        firstNameField.setPrefHeight(56);
+        firstNameField.setFont(Fonts.loadMontserratRegular(24));
+        firstNameField.setStyle("-fx-background-color: #ebebeb; " +
+            "-fx-border-color: black; " +
+            "-fx-border-radius: 15; " +
+            "-fx-background-radius: 15; " +
+            "-fx-text-fill: black;" +
+            "-fx-border-width: 4;");
+        root.getChildren().add(firstNameField);
+
+        // Last Name label and field (new)
+        Label lastNameLabel = new Label("Last Name");
+        lastNameLabel.setFont(Font.loadFont(Fonts.COMING_SOON, 44));
+        lastNameLabel.setLayoutX(100);
+        lastNameLabel.setLayoutY(400); // NASA 400 SO 40 DISTANCE.
+        root.getChildren().add(lastNameLabel);
+
+        TextField lastNameField = new TextField();
+        lastNameField.setLayoutX(100);
+        lastNameField.setLayoutY(470); // NASA 70 DISTANCE
+        lastNameField.setPrefWidth(600);
+        lastNameField.setPrefHeight(56);
+        lastNameField.setFont(Fonts.loadMontserratRegular(24));
+        lastNameField.setStyle("-fx-background-color: #ebebeb; " +
+            "-fx-border-color: black; " +
+            "-fx-border-radius: 15; " +
+            "-fx-background-radius: 15; " +
+            "-fx-text-fill: black;" +
+            "-fx-border-width: 4;");
+        root.getChildren().add(lastNameField);
+
         // Username text
         Label usernameLabel = new Label("Username");
-        Font usernameFont = Font.loadFont(Fonts.COMING_SOON, 60);
+        Font usernameFont = Font.loadFont(Fonts.COMING_SOON, 44);
         usernameLabel.setFont(usernameFont);
         usernameLabel.setLayoutX(100);
-        usernameLabel.setLayoutY(300);
+        usernameLabel.setLayoutY(510);
         root.getChildren().add(usernameLabel);
 
         // Password text
         Label passwordLabel = new Label("Password");
         passwordLabel.setFont(usernameFont);
         passwordLabel.setLayoutX(100);
-        passwordLabel.setLayoutY(480);
+        passwordLabel.setLayoutY(620);
         root.getChildren().add(passwordLabel);
 
         // Select Degree Program text
@@ -218,7 +262,7 @@ public class Register {
         // Create Account button
         Button createButton = new Button("Create Account");
         createButton.getStyleClass().add("btn-create");
-        createButton.setLayoutX(768); // adjust as needed
+        createButton.setLayoutX(768); // restored to original column
         createButton.setLayoutY(640);
         createButton.setPrefWidth(600);
         createButton.setPrefHeight(90);
@@ -274,32 +318,32 @@ public class Register {
         // Username text field
         TextField usernameField = new TextField();
         usernameField.setLayoutX(100);
-        usernameField.setLayoutY(400);
+        usernameField.setLayoutY(580);
         usernameField.setPrefWidth(600);
-        usernameField.setPrefHeight(60);
-        usernameField.setFont(Fonts.loadMontserratRegular(30));
+        usernameField.setPrefHeight(56);
+        usernameField.setFont(Fonts.loadMontserratRegular(24));
         usernameField.setStyle("-fx-background-color: #ebebeb; " +
-                "-fx-border-color: black; " +
-                "-fx-border-radius: 15; " +
-                "-fx-background-radius: 15; " +
-                "-fx-text-fill: black;" +
-                "-fx-border-width: 4;");
+            "-fx-border-color: black; " +
+            "-fx-border-radius: 15; " +
+            "-fx-background-radius: 15; " +
+            "-fx-text-fill: black;" +
+            "-fx-border-width: 4;");
         root.getChildren().add(usernameField);
 
         // Password text field
         PasswordField passwordField = new PasswordField();
         passwordField.setLayoutX(100);
-        passwordField.setLayoutY(580);
+        passwordField.setLayoutY(690);
         passwordField.setPrefWidth(600);
-        passwordField.setPrefHeight(60);
+        passwordField.setPrefHeight(56);
         // Use system font for password field so masked characters render reliably
-        passwordField.setFont(javafx.scene.text.Font.font("System", 30));
+        passwordField.setFont(javafx.scene.text.Font.font("System", 24));
         passwordField.setStyle("-fx-background-color: #ebebeb; " +
-                "-fx-border-color: black; " +
-                "-fx-border-radius: 15; " +
-                "-fx-background-radius: 15; " +
-                "-fx-text-fill: black;" +
-                "-fx-border-width: 4;");
+            "-fx-border-color: black; " +
+            "-fx-border-radius: 15; " +
+            "-fx-background-radius: 15; " +
+            "-fx-text-fill: black;" +
+            "-fx-border-width: 4;");
         root.getChildren().add(passwordField);
         
      // Loading data from CSV File
@@ -307,13 +351,23 @@ public class Register {
         
         // logic for creating account
         createButton.setOnAction(e -> {
+            String first = firstNameField.getText().trim();
+            String last = lastNameField.getText().trim();
             String uname = usernameField.getText().trim();
             String pass = passwordField.getText().trim();
             ToggleButton selectedDegree = (ToggleButton) degreeGroup.getSelectedToggle();
             boolean usernameFound = false;
             
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            
+
+            // First and Last name required
+            if (first.isBlank() || last.isBlank()) {
+                errorAlert.setHeaderText("Missing Name Fields!");
+                errorAlert.setContentText("Please fill in both first and last name.");
+                triggerErrorGlitch();
+                errorAlert.showAndWait();
+                return;
+            }
 
             // Username and password must be provided
             if (uname.isBlank() || pass.isEmpty()) {
@@ -365,9 +419,9 @@ public class Register {
                 return;
             }
 
-            // Append new user to users file 
-                Path folder = Paths.get("Database");
-                Path file = folder.resolve("users.csv");
+            // Append new user to users.csv
+            Path folder = Paths.get("Database");
+            Path file = folder.resolve("users.csv");
             try {
                 Files.createDirectories(folder);
                 ToggleButton selectedDegreeBtn = (ToggleButton) degreeGroup.getSelectedToggle();
@@ -376,7 +430,7 @@ public class Register {
                     degreeCode = selectedDegreeBtn.getUserData().toString();
                 }
                 try (BufferedWriter writer = Files.newBufferedWriter(file, java.nio.charset.StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-                    writer.write(uname + "," + pass + "," + degreeCode);
+                    writer.write(first + "," + last + "," + uname + "," + pass + "," + degreeCode);
                     writer.newLine();
                 }
             } catch (IOException ioEx) {
@@ -387,14 +441,13 @@ public class Register {
                 return;
             }
 
-            // update in-memory list so user can login immediately
-            // use degreeCode from the selected button
+            
             String degreeCodeForMemory = "";
             ToggleButton selectedDegreeBtn = (ToggleButton) degreeGroup.getSelectedToggle();
             if (selectedDegreeBtn != null && selectedDegreeBtn.getUserData() != null) {
                 degreeCodeForMemory = selectedDegreeBtn.getUserData().toString();
             }
-            data.add(new User(uname, pass, degreeCodeForMemory));
+            data.add(new User(first, last, uname, pass, degreeCodeForMemory));
 
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Account Created");

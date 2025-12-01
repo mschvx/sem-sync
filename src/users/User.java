@@ -7,6 +7,8 @@ import courses.Course;
 
 public class User {
 
+    private String firstName;
+    private String lastName;
     private String username;
     private String password;
     // store the raw degree code (e.g. "BachelorCS") so callers that expect a string can use it
@@ -17,8 +19,10 @@ public class User {
     // the user's selected/added courses during a session
     private List<Course> userCourses;
 
-    // Constructor used by loaders which store the degree as a string code
-    public User(String username, String password, String degreeCode) {
+    // Constructor including first and last name
+    public User(String firstName, String lastName, String username, String password, String degreeCode) {
+        this.firstName = (firstName != null) ? firstName : "";
+        this.lastName = (lastName != null) ? lastName : "";
         this.username = username;
         this.password = password;
         this.degreeCode = degreeCode;
@@ -47,6 +51,14 @@ public class User {
 
     public String getUsername() {
         return this.username;
+    }
+
+    public String getFirstName() {
+        return this.firstName;
+    }
+
+    public String getLastName() {
+        return this.lastName;
     }
 
     public String getPassword() {

@@ -68,16 +68,18 @@ public class Main extends Application {
                 }
 
                 String[] parts = line.split(",");
-
-                String username = parts[0].trim();
-                String password = parts[1].trim();
-
-                String degree = "";
-                if (parts.length >= 3) {
-                    degree = parts[2].trim();
+                // Expect exactly 5 columns: first,last,username,password,degree
+                if (parts.length != 5) {
+                    // skip malformed line
+                    continue;
                 }
+                String first = parts[0].trim();
+                String last = parts[1].trim();
+                String username = parts[2].trim();
+                String password = parts[3].trim();
+                String degree = parts[4].trim();
 
-                list.add(new User(username, password, degree));
+                list.add(new users.User(first, last, username, password, degree));
             }
 
         } catch (IOException e) {
