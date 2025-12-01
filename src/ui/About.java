@@ -280,7 +280,7 @@ public class About {
     });
 
     // Title
-    Label title = new Label("ABOUT SEM SYNC");
+    Label title = new Label("ABOUT SEMSYNC");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
     title.setLayoutX(200);

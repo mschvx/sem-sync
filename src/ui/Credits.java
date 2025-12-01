@@ -47,6 +47,13 @@ public class Credits {
     iv.setFitHeight(900); 
     iv.setLayoutX(-20);
     iv.setLayoutY(40);
+    // Clips 
+    Image clipsImg = new Image("file:Elements/Clips.png", false);
+    ImageView clipsView = new ImageView(clipsImg);
+    clipsView.setPreserveRatio(true);
+    clipsView.setFitHeight(900);
+    clipsView.setLayoutX(-100);
+    clipsView.setLayoutY(40);
     
     // stars
     Image star1 = new Image("file:Elements/Star1.png");
@@ -60,6 +67,14 @@ public class Credits {
 
     ImageView starC = new ImageView(star1);
     starC.setPreserveRatio(true); starC.setFitWidth(200); starC.setLayoutX(1170); starC.setLayoutY(250); starC.setRotate(150);
+    // Animation for stars
+    final Timeline starTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+        starA.setImage(starA.getImage() == star1 ? star2 : star1);
+        starB.setImage(starB.getImage() == star1 ? star2 : star1);
+        starC.setImage(starC.getImage() == star1 ? star2 : star1);
+    }));
+    starTimeline.setCycleCount(Timeline.INDEFINITE);
+    starTimeline.play();
     
     // Credit images
     Image antonioImg = new Image("file:Elements/Creds/Antonio.png", false);
@@ -152,6 +167,8 @@ public class Credits {
             fin.setToValue(1.0);
             fin.play();
         } catch (Exception ignored) {}
+        // speed up star animation while hovere
+        starTimeline.setRate(2.5);
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
@@ -161,16 +178,11 @@ public class Credits {
             fout.setToValue(0.0);
             fout.play();
         } catch (Exception ignored) {}
+        // restore normal star animation rate
+        starTimeline.setRate(1.0);
     });
 
-    // Animation for stars
-    Timeline starTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
-        starA.setImage(starA.getImage() == star1 ? star2 : star1);
-        starB.setImage(starB.getImage() == star1 ? star2 : star1);
-        starC.setImage(starC.getImage() == star1 ? star2 : star1);
-    }));
-    starTimeline.setCycleCount(Timeline.INDEFINITE);
-    starTimeline.play();
+    
 
     // 3D EFFECT FOR THREE BUTTONS
     RadialGradient yellowGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
@@ -253,6 +265,7 @@ public class Credits {
     hRed.setMouseTransparent(true);
 
     root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed,
+        clipsView,
         iv,
         starA, starB, starC,
         antonio, castro, legasto,
@@ -280,6 +293,19 @@ public class Credits {
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         root.getChildren().add(nightView);
+
+        // Ruler 
+        Image rulerImg = new Image("file:Elements/Ruler.png");
+        ImageView rulerView = new ImageView(rulerImg);
+        rulerView.setPreserveRatio(false);
+        rulerView.fitWidthProperty().bind(scene.widthProperty());
+        rulerView.fitHeightProperty().bind(scene.heightProperty());
+        rulerView.setLayoutX(0);
+        rulerView.setLayoutY(50);
+        rulerView.setRotate(0);
+        rulerView.setMouseTransparent(true);
+        root.getChildren().add(rulerView);
+        nightView.toFront();
         primaryStage.setScene(scene);
         primaryStage.setTitle("SemSync - Credits");
         primaryStage.setX(visualBounds.getMinX());
