@@ -25,7 +25,7 @@ public class Calendar {
 
     private final Pane root;
 
-    private final double width;
+    // width is passed to constructor but not stored (cellWidth uses it via constructor calculation)
     private final double height;
     private final double timeColWidth = 110;
 
@@ -47,7 +47,6 @@ public class Calendar {
 
     // Initialize calendar and build its sizes
     public Calendar(double width, double height) {
-        this.width = width;
         this.height = height;
         this.root = new Pane();
         this.root.setPrefWidth(width);

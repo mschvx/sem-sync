@@ -124,7 +124,7 @@ public class Dashboard {
         btnAbout.getStyleClass().add("sidebar-pill");
         btnAbout.setOnAction(ev -> new About().showAbout(primaryStage));
 
-        Button btnTutorial = new Button("TUTORIAL");
+        Button btnTutorial = new Button("PROFILE");
         btnTutorial.setLayoutX(buttonXPos);
         btnTutorial.setLayoutY(200);
         btnTutorial.setPrefWidth(sidebarWidth - 80);
@@ -132,9 +132,10 @@ public class Dashboard {
         btnTutorial.setFont(Fonts.loadSensaWild(22));
         btnTutorial.getStyleClass().add("btn-register");
         btnTutorial.getStyleClass().add("sidebar-pill");
-        btnTutorial.setOnAction(ev -> { /* waley pa */ });
+        // actual action attached after `content` is created so it can call Profile.showInContent
+        btnTutorial.setOnAction(ev -> { /* attached after content creation */ });
 
-        Button btnCatalogue = new Button("CATALOGUE");
+        Button btnCatalogue = new Button("DASHBOARD");
         btnCatalogue.setLayoutX(buttonXPos);
         btnCatalogue.setLayoutY(260);
         btnCatalogue.setPrefWidth(sidebarWidth - 80);
@@ -142,7 +143,8 @@ public class Dashboard {
         btnCatalogue.setFont(Fonts.loadSensaWild(22));
         btnCatalogue.getStyleClass().add("btn-create");
         btnCatalogue.getStyleClass().add("sidebar-pill");
-        btnCatalogue.setOnAction(ev -> { /* wla pa*/ });
+        // Action will be attached later once `content` is initialized.
+        btnCatalogue.setOnAction(ev -> { /* attached after content creation */ });
 
         // eye image
         File eyelidFile = new File("Elements/eyelid.png");
@@ -169,6 +171,17 @@ public class Dashboard {
         angerView.setLayoutX(buttonXPos);
         angerView.setLayoutY(360);
         angerView.setVisible(false);
+
+        // NIGHT image
+        Image nightImg = new Image(new File("Elements/yourenotsupposedtobehere/NIGHT.png").toURI().toString());
+        ImageView nightView = new ImageView(nightImg);
+        nightView.setPreserveRatio(false);
+        nightView.fitWidthProperty().bind(scene.widthProperty());
+        nightView.fitHeightProperty().bind(scene.heightProperty());
+        nightView.setLayoutX(0);
+        nightView.setLayoutY(0);
+        nightView.setOpacity(0);
+        nightView.setMouseTransparent(true);
 
         Button btnCredits = new Button("CREDITS");
         btnCredits.setLayoutX(buttonXPos);
@@ -210,6 +223,14 @@ public class Dashboard {
                 angerView.setVisible(true);
             } catch (Exception ex) {
             }
+                try {
+                    // make night overlay above everything
+                    nightView.toFront();
+                    javafx.animation.FadeTransition fin = new javafx.animation.FadeTransition(Duration.millis(220), nightView);
+                    fin.setFromValue(nightView.getOpacity());
+                    fin.setToValue(1.0);
+                    fin.play();
+                } catch (Exception ignored) {}
         });
         btnLogout.setOnMouseExited(ev -> {
             try {
@@ -218,6 +239,13 @@ public class Dashboard {
                 eyelidView.setVisible(true);
             } catch (Exception ex) {
             }
+                try {
+                    nightView.toFront();
+                    javafx.animation.FadeTransition fout = new javafx.animation.FadeTransition(Duration.millis(220), nightView);
+                    fout.setFromValue(nightView.getOpacity());
+                    fout.setToValue(0.0);
+                    fout.play();
+                } catch (Exception ignored) {}
         });
         btnLogout.setFocusTraversable(false);
 
@@ -234,6 +262,7 @@ public class Dashboard {
 
         // sidebar add to the screen all
         sidebar.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
+
 
         // --- Contents ---
         Pane content = new Pane();
@@ -253,20 +282,41 @@ public class Dashboard {
 
         root.getChildren().addAll(sidebar, contentScroll, menuBtn);
 
+        // a
+        try {
+            btnCatalogue.setOnAction(ev -> {
+                try {
+                    Object openFlag = content.getProperties().get("profileOpen");
+                    boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
+                    if (open) {
+                        new Profile().showInContent(content, scene, user, contentScroll);
+                    }
+                } catch (Exception ex) {
+                }
+            });
+        } catch (Exception ignored) {}
+
+        // attach Profile button action (previously Tutorial) now that content exists
+        try {
+            btnTutorial.setOnAction(ev -> {
+                try {
+                    new Profile().showInContent(content, scene, user, contentScroll);
+                } catch (Exception ex) {
+                }
+            });
+        } catch (Exception ignored) {}
+
         // --- Profile image ---
         final Image profile1 = new Image(new File("Elements/Profile1.png").toURI().toString());
         final Image profile2 = new Image(new File("Elements/Profile2.png").toURI().toString());
         final ImageView profileView = new ImageView(profile1);
         profileView.setPreserveRatio(true);
-        profileView.setFitWidth(200); 
-        // bind to scene 
-        profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(0));
+        profileView.setFitWidth(200);
+        profileView.layoutXProperty().bind(content.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
         profileView.setLayoutY(10);
         profileView.getStyleClass().add("profile-image");
-        root.getChildren().add(profileView);
-        profileView.toFront();
 
-        // profile animation
+        // profile hover animation 
         final Timeline profileTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
             if (profileView.getImage() == profile1) {
                 profileView.setImage(profile2);
@@ -282,6 +332,14 @@ public class Dashboard {
             profileView.setImage(profile1);
         });
 
+        profileView.setOnMouseClicked(ev -> {
+            try {
+                new Profile().showInContent(content, scene, user, contentScroll);
+                profileView.toFront();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         // Make the eye follow the mouse cursor by rotating the eye image around its center
         final javafx.scene.transform.Rotate eyeRotate = new javafx.scene.transform.Rotate(0, 0, 0);
@@ -339,8 +397,6 @@ public class Dashboard {
                 tMenu.setToX(menuNudge);
                 tSidebar.play(); tContent.play(); tMenu.play();
                 menuBtn.toFront();
-                //  profile stays on top of everything
-                try { profileView.toFront(); } catch (Exception ex) { }
                 open.set(true);
             } else {
                 // if close then slide sidebar out, shift content back, then hide
@@ -351,18 +407,20 @@ public class Dashboard {
                 tContent.setToX(0);
                 TranslateTransition tMenu = new TranslateTransition(Duration.millis(260), menuBtn);
                 tMenu.setToX(0);
-                tSidebar.setOnFinished(ev -> { sidebar.setVisible(false); menuBtn.toFront(); try { profileView.toFront(); } catch (Exception ex) {} });
+                tSidebar.setOnFinished(ev -> { sidebar.setVisible(false); menuBtn.toFront(); });
                 tSidebar.play(); tContent.play(); tMenu.play();
                 open.set(false);
             }
         });
 
-        // Determine greeting from degree
+        // Greeting
+        String firstName = (user != null) ? user.getFirstName() : "";
+        String displayName = firstName == null ? "" : firstName;
+        if (displayName.length() > 15) displayName = displayName.substring(0, 20) + "...";
+        String greeting = "Hello, " + displayName + "!";
+
         String degreeCode = (user != null) ? user.getDegree() : null;
         DegreeProgram program = DegreeLookup.fromCode(degreeCode);
-        String shortName = (program != null) ? program.getCourseCode() : "";
-
-        String greeting = "Hello, " + user.getUsername().toUpperCase() + " -" + (shortName.isEmpty() ? "" : " " + shortName) + "!";
 
         Label greetLabel = new Label(greeting);
         Font greetFont = Font.loadFont(Fonts.SENSA_SERIF, 80);
@@ -657,7 +715,19 @@ public class Dashboard {
         bottomSpacer.setPrefHeight(400);
 
         content.getChildren().addAll(dropdown, btnAdd, btnDelete, calendarPane, itemsLabel, listView, bottomSpacer);
-        
+        // 
+        try {
+            profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
+            profileView.setLayoutY(10);
+            root.getChildren().add(profileView);
+            profileView.toFront();
+        } catch (Exception ignore) {}
+
+        // add night overlay 
+        root.getChildren().add(nightView);
+        nightView.toBack();
+
+
         primaryStage.show();
     }
 
