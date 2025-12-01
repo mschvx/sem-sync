@@ -29,7 +29,9 @@ import users.User;
 import users.CurriculumLoader;
 import users.Curriculum;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.scene.text.Font;
@@ -528,103 +530,80 @@ public class Dashboard {
         
         dropdown.getItems().addAll(list);             
         
-        btnAdd.setOnMouseClicked(e -> {      
-        	Course selectedCourse = dropdown.getValue();
-        	
-        	if(selectedCourse == null) {
-        		System.out.println("error ahahah"); //Placeholder error
-        		return;        		
-        	}
-        	
+        btnAdd.setOnMouseClicked(e -> {
+            Course selectedCourse = dropdown.getValue();
 
-        	
-        	boolean exists = list.stream().anyMatch(c-> c.getCourseCode().equals(selectedCourse.getCourseCode()) && c.getSection().equals(selectedCourse.getSection()));
-        	
-        	if(!exists) {
-        		System.out.println("error"); //Placeholder error
-        		return;
-        	}
-        	
-        	
-        	if(selectedCourse instanceof Lecture) {
-        		
-        			Course copyselectedCourse = (Course) selectedCourse;
-        			
-        			if(!courseChecker(copyselectedCourse, user)) {
-        				return;
-        			}
-        		
+            if (selectedCourse == null) {
+                return;
+            }
+
+            boolean exists = dropdown.getItems().stream()
+                .anyMatch(c -> c.getCourseCode().equals(selectedCourse.getCourseCode())
+                            && c.getSection().equals(selectedCourse.getSection()));
+
+            if (!exists) {
+                return;
+            }
+
+            if (selectedCourse instanceof Lecture) {
+                Course copyselectedCourse = (Course) selectedCourse;
+                boolean ok = courseChecker(copyselectedCourse, user);
+         
+                if (!ok) return;
+
                 listItems.add(selectedCourse);
                 user.addCourse(selectedCourse);
                 calendar.addCourse(selectedCourse, listItems);
-                
-        	}  else if (selectedCourse instanceof Laboratory) {
-        	    Laboratory lab = (Laboratory) selectedCourse;
-        	    Course copyselectedCourse = (Course) selectedCourse;
 
-        	    Lecture parent = lab.getlectureSection();
-        	    Course copyparent = (Course) parent;
-        	    
-        	    boolean labAdded = false;
-        	    
-        	    boolean labInListItems = listItems.stream()
-            	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
-            	    boolean labInUser = user.getCourses().stream()
-            	        .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
+            } else if (selectedCourse instanceof Laboratory) {
+                Laboratory lab = (Laboratory) selectedCourse;
+                Course copyselectedCourse = (Course) selectedCourse;
 
-        			if(!courseChecker(copyselectedCourse, user)) {
-        				return;
-        			}
-            	    
-            	    
-            	    if (!labInListItems) {
-            	        listItems.add(lab);
-            	    }
-            	    if (!labInUser) {
-            	        user.addCourse(lab);
-            	    }
-            	    calendar.addCourse(lab, listItems);
-            	    labAdded = true;
-            	    
+                Lecture parent = lab.getlectureSection();
+                Course copyparent = (Course) parent;
 
-        	    if (parent != null && labAdded == true) {
-        	        boolean parentInListItems = listItems.stream()
-        	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
-        	        boolean parentInUser = user.getCourses().stream()
-        	            .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
+                boolean labInListItems = listItems.stream()
+                    .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
+                boolean labInUser = user.getCourses().stream()
+                    .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
 
-        	        
-        			if(!courseChecker(copyparent, user)) {
-        				return;
-        			}       	        
-        	        
-        	        if (!parentInListItems) {
-        	            listItems.add(parent);
-        	        }
-        	        if (!parentInUser) {
-        	            user.addCourse(parent);
-        	        }
-        	        calendar.addCourse(parent, listItems); 
-        	    } else {
-        	    		return;
-        	    }
+                boolean ok = courseChecker(copyselectedCourse, user);
+              
+                if (!ok) return;
 
+                if (!labInListItems) listItems.add(lab);
+                if (!labInUser) user.addCourse(lab);
+                calendar.addCourse(lab, listItems);
 
-        	}
-        		else if(selectedCourse instanceof Course) {           			
-        			
-        			Course copyselectedCourse = (Course) selectedCourse;
-        			
-        			if(!courseChecker(copyselectedCourse, user)) {
-        				return;
-        			}
-        			        			
+                boolean labAdded = true;
+
+                if (parent != null && labAdded) {
+                    boolean parentInListItems = listItems.stream()
+                        .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
+                    boolean parentInUser = user.getCourses().stream()
+                        .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
+
+                    boolean okParent = courseChecker(copyparent, user);
+                    if (!okParent) return;
+
+                    if (!parentInListItems) listItems.add(parent);
+                    if (!parentInUser) user.addCourse(parent);
+                    calendar.addCourse(parent, listItems);
+                } else {
+                    return;
+                }
+
+            } else if (selectedCourse instanceof Course) {
+                Course copyselectedCourse = (Course) selectedCourse;
+                boolean ok = courseChecker(copyselectedCourse, user);
+                if (!ok) return;
+
                 listItems.add(selectedCourse);
                 user.addCourse(selectedCourse);
-                calendar.addCourse(selectedCourse, listItems);        		
-        	}   	
-
+                calendar.addCourse(selectedCourse, listItems);
+            }
         });
+
         
         btnDelete.setOnMouseClicked( e-> {
         	Course selected = listView.getSelectionModel().getSelectedItem();
@@ -682,8 +661,6 @@ public class Dashboard {
         primaryStage.show();
     }
 
-    
-
     // for formatting well
     private static int parseUnits(String raw) {
         if (raw == null) return 0;
@@ -713,25 +690,127 @@ public class Dashboard {
         return text != null && text.contains("-");
     }
     
+    private boolean daysOverlap(Set<String> a, Set<String> b) {
+        if (a == null || b == null) return false;
+        for (String d : a) {
+            if (b.contains(d)) return true;
+        }
+        return false;
+    }
+
+    private int parseHour(String raw) {
+        if (raw == null) return 0;
+        String s = raw.trim();
+        if (s.isEmpty()) return 0;
+
+        // Disregards colon
+        int colon = s.indexOf(':');
+        String hourPart = (colon >= 0) ? s.substring(0, colon) : s;
+
+        // Remove any non-digit characters (keeps minus just in case)
+        hourPart = hourPart.replaceAll("[^0-9-]", "");
+        if (hourPart.isEmpty()) return 0;
+
+        try {
+            return Integer.parseInt(hourPart);
+        } catch (NumberFormatException ex) {
+            // In case of error, strips the characters
+            String digits = hourPart.replaceAll("[^0-9-]", "");
+            if (digits.isEmpty()) return 0;
+            try {
+                return Integer.parseInt(digits);
+            } catch (NumberFormatException ex2) {
+                return 0;
+            }
+        }
+    }
+
     private boolean courseChecker(Course selectedCourse, User user) {
-	    	for(Course c: user.getCourses()) {
-	    		if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
-	    			    c.getSection().equals(selectedCourse.getSection())) {
-	    			    System.out.println("error"); 
-	    			    return false;
-	    			}
-	
-	    	}
-	    	
-	    	for(Course c: user.getCourses()) {
-	    		if((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
-	    			System.out.println("error");
-	    			return false;
-	    		}
-	    	}
-    		
-	    	return true;
+
+        // Exact duplicate
+        for (Course c : user.getCourses()) {
+            if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
+                c.getSection().equals(selectedCourse.getSection())) {
+                System.out.println("error");
+                return false;
+            }
+        }
+
+        // Overlapping exact time
+        for (Course c : user.getCourses()) {
+            if ((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
+                System.out.println("error");
+                return false;
+            }
+        }
+
+        // Checker for overlapping times (uses parseHour instead of Integer.parseInt on "HH:MM")
+        String times = selectedCourse.getTimes();
+        String days = selectedCourse.getDays();
+        int[] range = parseHourRange(times);
+        int newStart = range[0];
+        int newEnd = range[1];
+        Set<String> newDays = parseDays(days);
+
+        for (Course c : user.getCourses()) {
+
+            Set<String> existDays = parseDays(c.getDays());
+
+            // Check days, if it doesn't overlap skip course
+            if (!daysOverlap(newDays, existDays)) {
+                continue;
+            }
+
+            String t = c.getTimes();
+            int[] range2 = parseHourRange(t);
+            int existingStart = range2[0];
+            int existingEnd = range2[1];
+
+            if (newStart < existingEnd && newEnd > existingStart) {
+                System.out.println("error");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    
+    public Set<String> parseDays(String raw) {
+        Set<String> days = new HashSet<>();
+        if (raw == null) return days;
+
+        String s = raw.toUpperCase().replaceAll("\\s+", "");
+
+        if (s.contains("TH")) {
+            days.add("Th");
+            s = s.replace("TH", ""); 
+        }
+
+        for (char c : s.toCharArray()) {
+            switch (c) {
+                case 'M': days.add("M"); break;
+                case 'T': days.add("T"); break;   
+                case 'W': days.add("W"); break;
+                case 'F': days.add("F"); break;
+            }
+        }
+        return days;
     }
     
+    private int[] parseHourRange(String raw) {
+        String[] p = raw.split("-");
+        int start = parseHour(p[0]);
+        int end = parseHour(p[1]);
+
+        // If the end hour is LESS than start hour, it's PM (add 12)
+        if (end < start) {
+            end += 12;
+        }
+
+        return new int[]{start, end};
+    }
+
     
+        
     }
