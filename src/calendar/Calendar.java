@@ -8,8 +8,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.BlurType;
@@ -38,8 +36,6 @@ public class Calendar {
     private final double cellWidth;
 
     private final double rowHeight;
-    
-    private ObservableList<Course> calendarCourses = FXCollections.<Course>observableArrayList();
 
     // Keeps track of rendered course blocks so they can be removed later
     private final Map<Course, List<Node>> blocks = new HashMap<>();
@@ -105,18 +101,8 @@ public class Calendar {
     }
 
     // Adds a block representing a course to the calendar
-    public void addCourse(Course selectedCourse, ObservableList<Course> list) {
+    public void addCourse(Course selectedCourse) {
         if (selectedCourse == null) return;
-        
-        
-        boolean exists = calendarCourses.stream()
-                .anyMatch(c -> c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
-                               c.getSection().equals(selectedCourse.getSection()));
-        
-        if(exists) {
-        		return;
-        }
-        
 
         String times = selectedCourse.getTimes();
         String daysStr = selectedCourse.getDays();
@@ -187,10 +173,7 @@ public class Calendar {
             created.add(block);
         }
 
-        if (!created.isEmpty()) {
-        		blocks.put(selectedCourse, created);
-        		calendarCourses.add(selectedCourse);
-        }
+        if (!created.isEmpty()) blocks.put(selectedCourse, created);
     }
 
     // Removes all course blocks associated with the given course
@@ -199,12 +182,6 @@ public class Calendar {
         List<Node> nodes = blocks.remove(c);
         if (nodes == null) return;
         for (Node n : nodes) root.getChildren().remove(n);
-        
-        calendarCourses.removeIf(cc ->
-        cc.getCourseCode().equals(c.getCourseCode()) &&
-        cc.getSection().equals(c.getSection())
-    );
-        
     }
 
     // Attempts to extract a valid integer hour from a time string

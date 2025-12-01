@@ -22,6 +22,7 @@ import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.animation.ScaleTransition;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -40,12 +41,74 @@ public class Credits {
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
 
     // Notebook image
-    Image detailsImage = new Image("file:Elements/Details.png", false);
+    Image detailsImage = new Image("file:Elements/Creds-page.png", false);
     ImageView iv = new ImageView(detailsImage);
     iv.setPreserveRatio(true);
     iv.setFitHeight(900); 
-    iv.setLayoutX(20);
-    iv.setLayoutY(20);
+    iv.setLayoutX(-20);
+    iv.setLayoutY(40);
+    
+    // stars
+    Image star1 = new Image("file:Elements/Star1.png");
+    Image star2 = new Image("file:Elements/Star2.png");
+
+    ImageView starA = new ImageView(star1);
+    starA.setPreserveRatio(true); starA.setFitWidth(200); starA.setLayoutX(670); starA.setLayoutY(230); starA.setRotate(10);
+
+    ImageView starB = new ImageView(star2);
+    starB.setPreserveRatio(true); starB.setFitWidth(200); starB.setLayoutX(260); starB.setLayoutY(400); starB.setRotate(130);
+
+    ImageView starC = new ImageView(star1);
+    starC.setPreserveRatio(true); starC.setFitWidth(200); starC.setLayoutX(1170); starC.setLayoutY(250); starC.setRotate(150);
+    
+    // Credit images
+    Image antonioImg = new Image("file:Elements/Creds/Antonio.png", false);
+    Image castroImg = new Image("file:Elements/Creds/Castro.png", false);
+    Image legastoImg = new Image("file:Elements/Creds/Legasto.png", false);
+    ImageView antonio = new ImageView(antonioImg);
+    ImageView castro = new ImageView(castroImg);
+    ImageView legasto = new ImageView(legastoImg);
+    antonio.setPreserveRatio(true); antonio.setFitWidth(550); antonio.setLayoutX(0); antonio.setLayoutY(460);
+    castro.setPreserveRatio(true); castro.setFitWidth(550); castro.setLayoutX(380); castro.setLayoutY(220);
+    legasto.setPreserveRatio(true); legasto.setFitWidth(550); legasto.setLayoutX(1100); legasto.setLayoutY(300);
+
+  
+
+    // Name and course text
+    Label castroText = new Label("Allane Lee Castro");
+    castroText.setFont(Fonts.loadComingSoon(40));
+    castroText.setLayoutX(210);
+    castroText.setLayoutY(270);
+
+    Label castroCourse = new Label("BS Computer Science");
+    castroCourse.setFont(Fonts.loadMontserratRegular(25));
+    castroCourse.setLayoutX(210);
+    castroCourse.setLayoutY(330);
+
+    Label antonioText = new Label("Juan Marco Antonio");
+    antonioText.setFont(Fonts.loadComingSoon(40));
+    antonioText.setLayoutX(390);
+    antonioText.setLayoutY(570);
+
+    Label antonionCourse = new Label("BS Applied Mathematics");
+    antonionCourse.setFont(Fonts.loadMontserratRegular(25));
+    antonionCourse.setLayoutX(390);
+    antonionCourse.setLayoutY(630);
+
+    Label legastoText1 = new Label("John Christian");
+    legastoText1.setFont(Fonts.loadComingSoon(40));
+    legastoText1.setLayoutX(970);
+    legastoText1.setLayoutY(400);
+
+    Label legastoText2 = new Label("Legasto");
+    legastoText2.setFont(Fonts.loadComingSoon(40));
+    legastoText2.setLayoutX(1100);
+    legastoText2.setLayoutY(445);
+
+    Label legastoCourse = new Label("BS Computer Science");
+    legastoCourse.setFont(Fonts.loadMontserratRegular(25));
+    legastoCourse.setLayoutX(970);
+    legastoCourse.setLayoutY(510);
     
     // Banderitas 
     Image band1 = new Image("file:Elements/Banderitas1.png");
@@ -66,16 +129,48 @@ public class Credits {
     }));
     bandTimeline.setCycleCount(Timeline.INDEFINITE);
     bandTimeline.play();
-    // Hover effect: show CONSUME.png while hovered, pause swapping
+    // show CONSUME.png while hovered, pause swapping
     Image consume = new Image("file:Elements/yourenotsupposedtobehere/CONSUME.png");
     bandView.setCursor(Cursor.HAND);
+    // NIGHT overlay image 
+    Image nightImg = new Image("file:Elements/yourenotsupposedtobehere/NIGHT.png");
+    ImageView nightView = new ImageView(nightImg);
+    nightView.setPreserveRatio(false);
+    nightView.fitWidthProperty().bind(scene.widthProperty());
+    nightView.fitHeightProperty().bind(scene.heightProperty());
+    nightView.setLayoutX(0);
+    nightView.setLayoutY(0);
+    nightView.setOpacity(0);
+    nightView.setMouseTransparent(true);
+
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
         bandView.setImage(consume);
+        try {
+            FadeTransition fin = new FadeTransition(Duration.millis(220), nightView);
+            fin.setFromValue(nightView.getOpacity());
+            fin.setToValue(1.0);
+            fin.play();
+        } catch (Exception ignored) {}
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
+        try {
+            FadeTransition fout = new FadeTransition(Duration.millis(220), nightView);
+            fout.setFromValue(nightView.getOpacity());
+            fout.setToValue(0.0);
+            fout.play();
+        } catch (Exception ignored) {}
     });
+
+    // Animation for stars
+    Timeline starTimeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+        starA.setImage(starA.getImage() == star1 ? star2 : star1);
+        starB.setImage(starB.getImage() == star1 ? star2 : star1);
+        starC.setImage(starC.getImage() == star1 ? star2 : star1);
+    }));
+    starTimeline.setCycleCount(Timeline.INDEFINITE);
+    starTimeline.play();
 
     // 3D EFFECT FOR THREE BUTTONS
     RadialGradient yellowGrad = new RadialGradient(0, 0, 0.3, 0.3, 1, true, CycleMethod.NO_CYCLE,
@@ -142,24 +237,9 @@ public class Credits {
     Label title = new Label("CREDITS");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
-    title.setLayoutX(220);
-    title.setLayoutY(100);
+    title.setLayoutX(200);
+    title.setLayoutY(90);
     title.setRotate(3);
-
-    // Intro text
-    Pane introBox = new Pane();
-    introBox.setLayoutX(200);
-    introBox.setLayoutY(190);
-    introBox.setPrefWidth(570);
-    introBox.setPrefHeight(50);
-    introBox.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;");
-    Label introLabel = new Label("Here are the developers who brought this application to life!");
-    introLabel.setFont(Fonts.loadMontserratRegular(18));
-    introLabel.setWrapText(true);
-    introLabel.setLayoutX(12);
-    introLabel.setLayoutY(15);
-    introLabel.setStyle("-fx-text-alignment: justify; -fx-line-spacing: 4;");
-    introBox.getChildren().add(introLabel);
 
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
@@ -172,7 +252,12 @@ public class Credits {
     hRed.setOpacity(0.26);
     hRed.setMouseTransparent(true);
 
-    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, introBox, title);
+    root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed,
+        iv,
+        starA, starB, starC,
+        antonio, castro, legasto,
+        castroText, castroCourse, antonioText, antonionCourse, legastoText1, legastoText2, legastoCourse,
+        title);
 
     // Go Back Button
     Button goBackButton = new Button("Go Back");
@@ -194,6 +279,7 @@ public class Credits {
     });
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+        root.getChildren().add(nightView);
         primaryStage.setScene(scene);
         primaryStage.setTitle("SemSync - Credits");
         primaryStage.setX(visualBounds.getMinX());

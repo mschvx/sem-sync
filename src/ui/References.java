@@ -22,6 +22,7 @@ import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.animation.ScaleTransition;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -44,8 +45,8 @@ public class References {
     ImageView iv = new ImageView(detailsImage);
     iv.setPreserveRatio(true);
     iv.setFitHeight(900); 
-    iv.setLayoutX(20);
-    iv.setLayoutY(20);
+    iv.setLayoutX(-20);
+    iv.setLayoutY(40);
 
     // Banderitas
     Image band1 = new Image("file:Elements/Banderitas1.png");
@@ -70,12 +71,35 @@ public class References {
     // Hover effect skeri banderitas :>
     Image consume = new Image("file:Elements/yourenotsupposedtobehere/CONSUME.png");
     bandView.setCursor(Cursor.HAND);
+    // NIGHT overlay image (full-screen)
+    Image nightImg = new Image("file:Elements/yourenotsupposedtobehere/NIGHT.png");
+    ImageView nightView = new ImageView(nightImg);
+    nightView.setPreserveRatio(false);
+    nightView.fitWidthProperty().bind(scene.widthProperty());
+    nightView.fitHeightProperty().bind(scene.heightProperty());
+    nightView.setLayoutX(0);
+    nightView.setLayoutY(0);
+    nightView.setOpacity(0);
+    nightView.setMouseTransparent(true);
+
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
         bandView.setImage(consume);
+        try {
+            FadeTransition fin = new FadeTransition(Duration.millis(220), nightView);
+            fin.setFromValue(nightView.getOpacity());
+            fin.setToValue(1.0);
+            fin.play();
+        } catch (Exception ignored) {}
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
+        try {
+            FadeTransition fout = new FadeTransition(Duration.millis(220), nightView);
+            fout.setFromValue(nightView.getOpacity());
+            fout.setToValue(0.0);
+            fout.play();
+        } catch (Exception ignored) {}
     });
 
     // 3D EFFECT FOR THREE BUTTONS
@@ -181,6 +205,7 @@ public class References {
     });
 
     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+        root.getChildren().add(nightView);
         primaryStage.setScene(scene);
         primaryStage.setTitle("SemSync - References");
         primaryStage.setX(visualBounds.getMinX());

@@ -22,6 +22,7 @@ import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.animation.ScaleTransition;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -133,8 +134,8 @@ public class About {
     ImageView iv = new ImageView(detailsImage);
     iv.setPreserveRatio(true);
     iv.setFitHeight(900); 
-    iv.setLayoutX(20);
-    iv.setLayoutY(20);
+    iv.setLayoutX(-20);
+    iv.setLayoutY(40);
     
     // Banderitas 
     Image band1 = new Image("file:Elements/Banderitas1.png");
@@ -158,6 +159,17 @@ public class About {
     // show CONSUME.png while hovered, pause swapping
     Image consume = new Image("file:Elements/yourenotsupposedtobehere/CONSUME.png");
     bandView.setCursor(Cursor.HAND);
+    // NIGHT overlay image 
+    Image nightImg = new Image("file:Elements/yourenotsupposedtobehere/NIGHT.png");
+    ImageView nightView = new ImageView(nightImg);
+    nightView.setPreserveRatio(false);
+    nightView.fitWidthProperty().bind(scene.widthProperty());
+    nightView.fitHeightProperty().bind(scene.heightProperty());
+    nightView.setLayoutX(0);
+    nightView.setLayoutY(0);
+    nightView.setOpacity(0);
+    nightView.setMouseTransparent(true);
+
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
         bandView.setImage(consume);
@@ -183,6 +195,24 @@ public class About {
         } catch (Exception ex) {
             // ignore
         }
+    });
+
+    // Add fade transitions for the NIGHT overlay
+    bandView.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
+        try {
+            FadeTransition fin = new FadeTransition(Duration.millis(220), nightView);
+            fin.setFromValue(nightView.getOpacity());
+            fin.setToValue(1.0); // untransparent
+            fin.play();
+        } catch (Exception ignored) {}
+    });
+    bandView.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_EXITED, e -> {
+        try {
+            FadeTransition fout = new FadeTransition(Duration.millis(220), nightView);
+            fout.setFromValue(nightView.getOpacity());
+            fout.setToValue(0.0); // transparent
+            fout.play();
+        } catch (Exception ignored) {}
     });
 
     
@@ -350,6 +380,7 @@ public class About {
 
     // basic window properties
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+        root.getChildren().add(nightView);
         primaryStage.setScene(scene);
         primaryStage.setTitle("SemSync - About");
         primaryStage.setX(visualBounds.getMinX());
