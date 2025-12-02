@@ -773,78 +773,91 @@ public class Dashboard {
         String s = raw.trim();
         if (s.isEmpty()) return 0;
 
-        // Disregards colon
         int colon = s.indexOf(':');
         String hourPart = (colon >= 0) ? s.substring(0, colon) : s;
-
-        // Remove any non-digit characters (keeps minus just in case)
-        hourPart = hourPart.replaceAll("[^0-9-]", "");
+        hourPart = hourPart.replaceAll("[^0-9]", "");
         if (hourPart.isEmpty()) return 0;
 
         try {
-            return Integer.parseInt(hourPart);
+            int h = Integer.parseInt(hourPart);
+            if (h <= 0) return 0;
+            if (h > 12) h = h % 12 == 0 ? 12 : h % 12;
+            return h;
         } catch (NumberFormatException ex) {
-            // In case of error, strips the characters
-            String digits = hourPart.replaceAll("[^0-9-]", "");
-            if (digits.isEmpty()) return 0;
-            try {
-                return Integer.parseInt(digits);
-            } catch (NumberFormatException ex2) {
-                return 0;
-            }
+            return 0;
         }
     }
 
+    private int[] parseHourRange(String raw) {
+        if (raw == null) return new int[]{0, 0};
+        String[] parts = raw.split("-");
+        if (parts.length < 2) {
+            int v = parseHour(raw.trim());
+            return new int[]{v, v};
+        }
+
+        int start = parseHour(parts[0].trim());
+        int end = parseHour(parts[1].trim());
+
+        if (start <= 0) start = 0;
+        if (end <= 0) end = 0;
+
+        if (end <= start) {
+            end += 12;
+        }
+
+        if (start >= 4 && start <= 11) {
+            if (start <= 12) start += 12;
+            if (end <= 12) end += 12;
+        }
+
+        return new int[]{start, end};
+    }
+
     private boolean courseChecker(Course selectedCourse, User user) {
+        if (selectedCourse == null || user == null) return false;
 
-        // Exact duplicate
+        // Exact duplicate (same course code + section)
         for (Course c : user.getCourses()) {
-            if (c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
-                c.getSection().equals(selectedCourse.getSection())) {
-                System.out.println("error");
+            if (c.getCourseCode().equals(selectedCourse.getCourseCode())
+                    && c.getSection().equals(selectedCourse.getSection())) {
+                System.out.println("error: duplicate course/section");
                 return false;
             }
         }
 
-        // Overlapping exact time
+        // Exact same times & days string
         for (Course c : user.getCourses()) {
-            if ((c.getTimes().equals(selectedCourse.getTimes())) && c.getDays().equals(selectedCourse.getDays())) {
-                System.out.println("error");
+            if (c.getTimes().equals(selectedCourse.getTimes())
+                    && c.getDays().equals(selectedCourse.getDays())) {
+                System.out.println("error: exact same time & days");
                 return false;
             }
         }
 
-        // Checker for overlapping times (uses parseHour instead of Integer.parseInt on "HH:MM")
-        String times = selectedCourse.getTimes();
-        String days = selectedCourse.getDays();
-        int[] range = parseHourRange(times);
-        int newStart = range[0];
-        int newEnd = range[1];
-        Set<String> newDays = parseDays(days);
+        int[] newRange = parseHourRange(selectedCourse.getTimes());
+        int newStart = newRange[0];
+        int newEnd = newRange[1];
+        Set<String> newDays = parseDays(selectedCourse.getDays());
+
+        if (newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return true;
 
         for (Course c : user.getCourses()) {
-
             Set<String> existDays = parseDays(c.getDays());
+            if (!daysOverlap(newDays, existDays)) continue;
 
-            // Check days, if it doesn't overlap skip course
-            if (!daysOverlap(newDays, existDays)) {
-                continue;
-            }
+            int[] existRange = parseHourRange(c.getTimes());
+            int existStart = existRange[0];
+            int existEnd = existRange[1];
 
-            String t = c.getTimes();
-            int[] range2 = parseHourRange(t);
-            int existingStart = range2[0];
-            int existingEnd = range2[1];
-
-            if (newStart < existingEnd && newEnd > existingStart) {
-                System.out.println("error");
+            if (newStart < existEnd && newEnd > existStart) {
+                System.out.println("error: time overlap with " + c.getCourseCode() + " " + c.getTimes());
                 return false;
             }
         }
 
         return true;
     }
-
     
     public Set<String> parseDays(String raw) {
         Set<String> days = new HashSet<>();
@@ -866,20 +879,7 @@ public class Dashboard {
             }
         }
         return days;
-    }
-    
-    private int[] parseHourRange(String raw) {
-        String[] p = raw.split("-");
-        int start = parseHour(p[0]);
-        int end = parseHour(p[1]);
-
-        // If the end hour is LESS than start hour, it's PM (add 12)
-        if (end < start) {
-            end += 12;
-        }
-
-        return new int[]{start, end};
-    }
+    }    
 
     
         

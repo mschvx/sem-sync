@@ -104,18 +104,18 @@ public class Calendar {
         return root;
     }
 
-    // Adds a block representing a course to the calendar
+ // ---------- Replace the existing addCourse(...) method with this ----------
+
     public void addCourse(Course selectedCourse, ObservableList<Course> list) {
         if (selectedCourse == null) return;
-        
-        
+
         // Checking if there is a duplicate course inside the calendar
         boolean exists = calendarCourses.stream()
                 .anyMatch(c -> c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
                                c.getSection().equals(selectedCourse.getSection()));
-        
-        if(exists) {
-        		return;
+
+        if (exists) {
+            return;
         }
 
         String times = selectedCourse.getTimes();
@@ -129,17 +129,27 @@ public class Calendar {
 
         // Only process the first time range and trim the data
         String timeSeg = times.split(",")[0].trim();
+        //If missing dash, skip
+        if (!timeSeg.contains("-")) return;
+
+        // Parse hour
         String[] hs = timeSeg.split("-");
+        int rawStart = parseHour(hs.length > 0 ? hs[0].trim() : "");
+        int rawEnd   = parseHour(hs.length > 1 ? hs[1].trim() : "");
 
-        int startHour = parseHour(hs.length > 0 ? hs[0].trim() : "");
-        int endHour = parseHour(hs.length > 1 ? hs[1].trim() : "");
+        // Decide best 24-hour interpretation for display
+        int[] chosen = chooseBest24HourRange(rawStart, rawEnd);
 
-        // normalize hours 
-        if (endHour <= startHour) endHour += 12;
+        int startHour24 = chosen[0]; 
+        int endHour24   = chosen[1];
 
         int gridStart = 7;
-        double y = headerHeight + Math.max(0, (startHour - gridStart) * rowHeight);
-        double heightPx = Math.max(rowHeight * (endHour - startHour), rowHeight);
+        int gridEnd = gridStart + rows; // exclusive upper bound, so 19
+
+        // If the chosen range is completely outside the visible grid, we will still
+        // attempt to clamp the displayed portion so at least something is shown.
+        double y = headerHeight + (Math.max(0, Math.min(gridEnd, startHour24) - gridStart)) * rowHeight;
+        double heightPx = Math.max(rowHeight * (Math.max(0, Math.min(gridEnd, endHour24) - Math.max(gridStart, startHour24))), rowHeight);
 
         // Determine which days the course applies to
         boolean[] dayFlags = parseDays(daysStr);
@@ -187,10 +197,42 @@ public class Calendar {
             created.add(block);
         }
 
-	        if (!created.isEmpty()) {
-	    		blocks.put(selectedCourse, created);
-	    		calendarCourses.add(selectedCourse);
-	    }
+        if (!created.isEmpty()) {
+            blocks.put(selectedCourse, created);
+            calendarCourses.add(selectedCourse);
+        }
+    }
+
+    // For better display of the time blocks
+    private int[] chooseBest24HourRange(int rawStart, int rawEnd) {
+        // Defaults
+        if (rawStart <= 0) rawStart = 0;
+        if (rawEnd <= 0) rawEnd = 0;
+
+        // Default values
+        int defStart = rawStart;
+        int defEnd   = rawEnd;
+        if (defEnd <= defStart) defEnd += 12;
+
+        // PM Interpretation
+        int pmStart = (rawStart <= 12 ? rawStart + 12 : rawStart);
+        int pmEnd   = (rawEnd   <= 12 ? rawEnd   + 12 : rawEnd);
+        if (pmEnd <= pmStart) pmEnd += 12; // ensure pmEnd > pmStart
+
+        // Visible window
+        int gridStart = 7;
+        int gridEnd = gridStart + rows; // exclusive
+
+        boolean defInWindow = (defStart < gridEnd) && (defEnd > gridStart); // any overlap
+        boolean pmInWindow  = (pmStart  < gridEnd) && (pmEnd  > gridStart);
+
+        // Prefer the interpretation that has overlap with the visible grid
+        if (pmInWindow && !defInWindow) {
+            return new int[]{pmStart, pmEnd};
+        } else {
+            // prefer default in tie or none
+            return new int[]{defStart, defEnd};
+        }
     }
 
     // Removes all course blocks associated with the given course
