@@ -1060,6 +1060,15 @@ public class Dashboard {
         // populate table
         java.util.function.BiConsumer<Boolean, String[]> populate = (showAllFlag, params) -> {
             fullResults.clear();
+            
+            if(showAllFlag == false) {
+            	fullResults.clear();
+                currentPage[0] = 1;
+                updatePage.run();              
+                try { if (updatePaginationUI[0] != null) updatePaginationUI[0].run(); } catch (Exception ignore) {}
+            	return;
+            }
+            
             String codeParam = params != null && params.length > 0 ? params[0] : "";
             String sectionParam = params != null && params.length > 1 ? params[1] : "";
             String codeNorm = normalizeCourseCode(codeParam == null ? "" : codeParam).toUpperCase();
@@ -1116,11 +1125,11 @@ public class Dashboard {
         btnSearch.setOnAction(ev -> {
             String code = txtSearchCode.getText() == null ? "" : txtSearchCode.getText().trim();
             String section = txtSearchSection.getText() == null ? "" : txtSearchSection.getText().trim();
-            // if both empty, act like show all
-            if (code.isEmpty() && section.isEmpty()) {
-                populate.accept(true, new String[]{"",""});
+            // if both empty, show nothing
+            if (code.equals("") && section.equals("")) {
+                populate.accept(false, new String[]{"",""});
             } else {
-                populate.accept(false, new String[]{code, section});
+                populate.accept(true, new String[]{code, section});
             }
         });
 
