@@ -1,4 +1,4 @@
-package users;
+package students;
 
 public class PHDCS implements DegreeProgram {
     @Override

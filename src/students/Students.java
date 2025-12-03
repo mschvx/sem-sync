@@ -1,11 +1,11 @@
-package users;
+package students;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import courses.Course;
 
-public class User {
+public class Students {
 
     private String firstName;
     private String lastName;
@@ -20,7 +20,7 @@ public class User {
     private List<Course> userCourses;
 
     // Constructor including first and last name
-    public User(String firstName, String lastName, String username, String password, String degreeCode) {
+    public Students(String firstName, String lastName, String username, String password, String degreeCode) {
         this.firstName = (firstName != null) ? firstName : "";
         this.lastName = (lastName != null) ? lastName : "";
         this.username = username;
@@ -36,7 +36,7 @@ public class User {
     }
 
     // Optional constructor if a DegreeProgram object is already available
-    public User(String username, String password, DegreeProgram degree) {
+    public Students(String username, String password, DegreeProgram degree) {
         this.username = username;
         this.password = password;
         this.degreeProgram = degree;

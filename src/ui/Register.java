@@ -32,7 +32,7 @@ import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
-import users.User;
+import students.Students;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 
@@ -56,8 +56,8 @@ public class Register {
     Path path = Path.of(System.getProperty("user.dir"));
 
     // used for validating if user created does not already exist
-    private ObservableList<User> loadData(Path path) {
-        ObservableList<User> list = FXCollections.<User>observableArrayList();
+    private ObservableList<Students> loadData(Path path) {
+        ObservableList<Students> list = FXCollections.<Students>observableArrayList();
         Path folder = Paths.get("Database");
         Path file = folder.resolve("users.csv");
 
@@ -85,7 +85,7 @@ public class Register {
                 String password = parts[3].trim();
                 String degree = parts[4].trim();
 
-                list.add(new User(first, last, username, password, degree));
+                list.add(new Students(first, last, username, password, degree));
             }
 
         } catch (IOException e) {
@@ -347,7 +347,7 @@ public class Register {
         root.getChildren().add(passwordField);
         
      // Loading data from CSV File
-        ObservableList<User> data = loadData(path);
+        ObservableList<Students> data = loadData(path);
         
         // logic for creating account
         createButton.setOnAction(e -> {
@@ -405,7 +405,7 @@ public class Register {
             }
 
             // username is unique
-            for (User user : data) {
+            for (Students user : data) {
                 if (user.getUsername().equals(uname)) {
                     usernameFound = true;
                     break;
@@ -447,7 +447,7 @@ public class Register {
             if (selectedDegreeBtn != null && selectedDegreeBtn.getUserData() != null) {
                 degreeCodeForMemory = selectedDegreeBtn.getUserData().toString();
             }
-            data.add(new User(first, last, uname, pass, degreeCodeForMemory));
+            data.add(new Students(first, last, uname, pass, degreeCodeForMemory));
 
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Account Created");

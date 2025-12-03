@@ -13,10 +13,8 @@ import javafx.scene.paint.Color;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
-
+import students.Students;
 import application.Fonts;
-
-import users.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +23,7 @@ public class Profile {
 
 
     @SuppressWarnings("unchecked")
-    public void showInContent(Pane content, Scene scene, User user, ScrollPane contentScroll) {
+    public void showInContent(Pane content, Scene scene, Students user, ScrollPane contentScroll) {
         Object openFlag = content.getProperties().get("profileOpen");
         boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
 

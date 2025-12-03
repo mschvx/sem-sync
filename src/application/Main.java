@@ -22,10 +22,10 @@ import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+import students.Students;
 import ui.About;
 import ui.Dashboard;
 import ui.Register;
-import users.User;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Alert;
@@ -38,13 +38,13 @@ public class Main extends Application {
     // Track whether a user is currently logged in
     public static boolean isLoggedIn = false;
     // Currently logged-in user 
-    public static User loggedInUser = null; // null start with it if no one using it yet
+    public static Students loggedInUser = null; // null start with it if no one using it yet
 
     // Track consecutive wrong login attempts
     private int wrongAttempts = 0;
     // Load method to get the data from CSV file
-    private ObservableList<User> loadData(Path path) {
-        ObservableList<User> list = FXCollections.<User>observableArrayList();
+    private ObservableList<Students> loadData(Path path) {
+        ObservableList<Students> list = FXCollections.<Students>observableArrayList();
         Path folder = Paths.get("Database");
         Path file = folder.resolve("users.csv");
 
@@ -79,7 +79,7 @@ public class Main extends Application {
                 String password = parts[3].trim();
                 String degree = parts[4].trim();
 
-                list.add(new users.User(first, last, username, password, degree));
+                list.add(new students.Students(first, last, username, password, degree));
             }
 
         } catch (IOException e) {
@@ -384,14 +384,14 @@ public class Main extends Application {
             registerButton.setOnMouseExited(e -> stopPlaneAnimation(planeView, plane2));
 
             // Loading data from CSV File
-            ObservableList<User> data = loadData(path);
+            ObservableList<Students> data = loadData(path);
 
             // Button Click for Login
             loginButton.setOnAction(e -> {
                 try {
                     String uname = usernameField.getText().trim();
                     String pass = passwordField.getText().trim();
-                    User currentUser = null;
+                    Students currentUser = null;
 
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
 
@@ -412,7 +412,7 @@ public class Main extends Application {
                         return;
                     }
 
-                    for (User user : data) {
+                    for (Students user : data) {
                         if (user.getUsername().equals(uname)) {
                             if (user.getPassword().equals(pass)) {
                                 currentUser = user;

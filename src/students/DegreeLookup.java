@@ -1,4 +1,4 @@
-package users;
+package students;
 // for the codes to determine which course code the user has
 public class DegreeLookup {
     public static DegreeProgram fromCode(String code) {

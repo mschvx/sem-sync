@@ -356,6 +356,8 @@ public class Calendar {
             cc.getCourseCode().equals(c.getCourseCode()) &&
             cc.getSection().equals(c.getSection())
         );
+        
+        blocks.remove(c, nodes);
     }
 
     // Attempts to extract a valid integer hour from a time string

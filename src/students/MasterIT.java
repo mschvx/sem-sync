@@ -1,4 +1,4 @@
-package users;
+package students;
 
 public class MasterIT implements DegreeProgram {
     @Override

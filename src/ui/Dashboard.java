@@ -9,7 +9,6 @@ import courses.Lecture;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.io.BufferedReader;
@@ -26,20 +25,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import users.DegreeLookup;
-import users.DegreeProgram;
-import users.User;
-import users.CurriculumLoader;
-import users.Curriculum;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.scene.text.Font;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
@@ -53,12 +50,18 @@ import javafx.collections.FXCollections;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
+import students.Curriculum;
+import students.CurriculumLoader;
+import students.DegreeLookup;
+import students.DegreeProgram;
+import students.Students;
 import javafx.scene.input.MouseEvent;
 
 public class Dashboard {
 
+    private Map<Lecture, Laboratory> lectureToAddedLab = new HashMap<>();
     // Show dashboard for a specific user (so we can display degree greeting)
-    public void showDashboard(Stage primaryStage, User user) {
+    public void showDashboard(Stage primaryStage, Students user) {
         Pane root = new Pane();
         root.getStyleClass().add("root");
         Scene scene = new Scene(root, 1536, 864);
@@ -644,6 +647,7 @@ public class Dashboard {
                     		if(lec.equals(l.getSection())) {
                     			l.addLabSection(lab);
                     			lab.setlectureSection(l);
+                    			lectureToAddedLab.put(l, lab);
                     		}
                     	}
 
@@ -912,46 +916,79 @@ public class Dashboard {
             @Override protected void updateItem(PairView item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setGraphic(null);
+                    setGraphic(null);                                                           
                 } else {
                     btn.setFont(Fonts.loadMontserratRegular(16));
+                    Lecture copyLec = item.getLecture();
+                    Laboratory copyLab = item.getLab();
+                    
+                    Course rep = (copyLab != null) ? copyLab : copyLec;
+
+                    boolean already = isCourseAdded(rep, user);
+
+                    if (already) {
+                        btn.setDisable(true);
+                        btn.setText("ADDED");
+                    } else {
+                        btn.setDisable(false);
+                        btn.setText("ADD");
+                    }                                       
+                    
                     btn.setOnAction(ev -> {
                         try {
-                            boolean addedAny = false;
-                            String failReason = null;
-                            Lecture lec = item.getLecture();
-                            Laboratory lab = item.getLab();
-                            String lecReason = null;
-                            String labReason = null;
-                            if (lec != null) lecReason = validateCourseForUser(lec, user);
-                            if (lab != null) labReason = validateCourseForUser(lab, user);
+                        	boolean addedAny = false;
+                        	String failReason = null;
+                        	Lecture lec = item.getLecture();
+                        	Laboratory lab = item.getLab();
+                        	String lecReason = null;
+                        	String labReason = null;
 
-                            // add lec/lab to edit table
-                            if (lec != null && lecReason == null) {
-                                user.addCourse(lec);
-                                calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
-                                addedAny = true;
-                                // add lab to user's schedule if present and valid
-                                if (lab != null && labReason == null) {
-                                    user.addCourse(lab);
-                                    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                                } else if (lab != null && labReason != null) {
-                                    if (failReason == null) failReason = "Lab not added: " + labReason;
-                                    else failReason += "; Lab not added: " + labReason;
-                                }
-                                // show only one row for the pair
-                                if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
-                            } else if (lab != null && labReason == null) {
-                                // lecture either not present or couldn't be added, but lab can be
-                                user.addCourse(lab);
-                                calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                                addedAny = true;
-                                if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
-                            } else {
-                                // neither added
-                                if (lec != null && lecReason != null) failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
-                                if (lab != null && labReason != null) failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
-                            }
+                        	if (lec != null) lecReason = validateCourseForUser(lec, user);
+
+                        	if (lab != null) {
+                        	    labReason = validateCourseForUser(lab, user);
+                        	    if (labReason == null && lec != null && lecReason == null) {
+                        	        // additionally fail the lab if it overlaps with the lecture we're about to add
+                        	        if (overlaps(lab, lec)) {
+                        	            labReason = "Time overlap with the lecture section " + lec.getCourseCode() + " " + lec.getSection();
+                        	        }
+                        	    }
+                        	}
+                        	// add lec/lab to edit table
+                        	if (lec != null && lecReason == null) {
+                        	    user.addCourse(lec);
+                        	    calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                        	    addedAny = true;
+
+                        	    // add lab to user's schedule if present and valid
+                        	    if (lab != null && labReason == null) {
+                        	        user.addCourse(lab);
+                        	        calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                        	    } else if (lab != null && labReason != null) {
+                        	        if (failReason == null) failReason = "Lab not added: " + labReason;
+                        	    }
+                        	    // show only one row for the pair
+                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+
+                        	} else if (lab != null && labReason == null) {
+                        	    // lecture either not present or couldn't be added, but lab can be
+                        		if(user.getCourses().contains(lab.getlectureSection())) {
+                            	    user.addCourse(lab);
+                            	    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                            	    addedAny = true;                        			
+                        		} else {
+                        			failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + lab.getlectureSection().getSection() + "\" does not exist";
+
+                        		}                       		
+
+                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                        	} else {
+                        	    // neither added
+                        	    if (lec != null && lecReason != null)
+                        	        failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
+                        	    if (lab != null && labReason != null)
+                        	        failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
+                        	}
 
                             if (addedAny) {
                                 btn.setDisable(true);
@@ -963,6 +1000,10 @@ public class Dashboard {
                             } else if (!addedAny && failReason == null) {
                                 showToast(root, "Nothing added", 1800);
                             }
+                            
+                            classTable.refresh();
+                            if (editTableRef[0] != null) editTableRef[0].refresh();
+                            
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
                     setGraphic(btn);
@@ -1020,7 +1061,9 @@ public class Dashboard {
             if (currentPage[0] > 1) {
                 currentPage[0]--;
                 updatePage.run();
+                classTable.refresh();              
             }
+            
         });
         btnNextPage.setOnAction(ev2 -> {
             if (btnNextPage.isDisabled()) return;
@@ -1029,6 +1072,7 @@ public class Dashboard {
             if (currentPage[0] < totalPages) {
                 currentPage[0]++;
                 updatePage.run();
+                classTable.refresh();   
             }
         });
 
@@ -1123,7 +1167,7 @@ public class Dashboard {
             }
 
             currentPage[0] = 1;
-            updatePage.run();
+            updatePage.run();   
             int total = fullResults.size();
             int totalPages = Math.max(1, (int) Math.ceil(total / (double) pageSize));
             lblPage.setText(currentPage[0] + " / " + totalPages + "   (" + total + " results)");
@@ -1145,6 +1189,7 @@ public class Dashboard {
                 populate.accept(true, new String[]{code, section});
             }
         });
+        
 
         // Edit classes section
         Label editLabel = new Label("Edit Classes");
@@ -1155,7 +1200,7 @@ public class Dashboard {
         editLabel.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
             classTable.getLayoutY() + classTable.getPrefHeight() + (paginationPane == null ? 0 : paginationPane.getPrefHeight()) + 24,
             classTable.layoutYProperty(), classTable.prefHeightProperty(), paginationPane.prefHeightProperty()));
-        editLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
+       editLabel.getStyleClass().add("fixed-header");
 
         // Table for editing classes with class and action column
         TableView<Course> editTable = new TableView<>();
@@ -1266,30 +1311,81 @@ public class Dashboard {
         TableColumn<Course, Course> editActionCol = new TableColumn<>("Action");
         editActionCol.setPrefWidth(160); // smaller
         editActionCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
+
         editActionCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, Course>() {
+
             private final Button btn = new Button("DELETE");
+
             {
                 btn.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff827f, #ff4c4c); -fx-border-color: transparent; -fx-text-fill: white; -fx-background-radius: 8;");
                 btn.setPrefWidth(120);
                 btn.setPrefHeight(36);
             }
-            @Override protected void updateItem(Course item, boolean empty) {
+
+            @Override
+            protected void updateItem(Course item, boolean empty) {
                 super.updateItem(item, empty);
+
                 if (empty || item == null) {
                     setGraphic(null);
                 } else {
                     btn.setFont(Fonts.loadMontserratRegular(16));
-                    // remove the item from the table when delete clicked (NOT WORKING PROPERLY  PA)
+
                     btn.setOnAction(ev -> {
                         try {
                             getTableView().getItems().remove(item);
+                            calendar.removeCourse(item);
+                            editTable.getItems().remove(item);
+
+                            if (item instanceof Laboratory) {
+                                Laboratory cLab = (Laboratory) item;
+                                Lecture pairedLec = cLab.getlectureSection();
+
+                                if (user.getCourses().contains(cLab)) {
+                                    user.getCourses().remove(cLab);
+                                    editTable.getItems().removeIf(c -> c instanceof Laboratory && c.equals(cLab));
+                                    calendar.removeCourse(cLab);
+                                }
+
+                                System.out.print("lab removed");
+
+                            } else if (item instanceof Lecture) {
+                                Lecture cLec = (Lecture) item;
+                                Laboratory paired = lectureToAddedLab.remove(cLec);
+
+                                for (Laboratory lab : cLec.getLabSections()) {
+                                    if (user.getCourses().contains(lab)) {
+                                        user.getCourses().remove(lab);
+                                        getTableView().getItems().remove(lab);
+                                        calendar.removeCourse(lab);
+                                        editTable.getItems().removeIf(c -> c instanceof Laboratory && c.equals(lab));
+                                    }
+                                }
+
+
+                                user.getCourses().remove(cLec);
+                                System.out.print("lec removed");
+
+                            } else {
+                                user.getCourses().remove(item);
+                                System.out.print("course removed");
+                            }
+
+                            classTable.refresh();
+                            if (editTableRef[0] != null) editTableRef[0].refresh();
+
+                            showToast(root, "Removed from your schedule", 1800);
+
                         } catch (Exception ex) {
+                            ex.printStackTrace();
                         }
                     });
+
                     setGraphic(btn);
                 }
             }
-        });
+        }); 
+
 
         editTable.getColumns().addAll(classColSmall, editActionCol);
         editTable.setItems(FXCollections.observableArrayList());
@@ -1422,7 +1518,7 @@ public class Dashboard {
     }
 
     // Parse a time string into decimals
-    private double parseTimeDecimal(String raw) {
+    /*private double parseTimeDecimal(String raw) {
         if (raw == null) return 0.0;
         raw = raw.trim();
         if (raw.isEmpty()) return 0.0;
@@ -1448,9 +1544,9 @@ public class Dashboard {
         } catch (Exception ex) {
             return 0.0;
         }
-    }
+    }*/
 
-    private double[] parseTimeRangeDecimal(String raw) {
+    /*private double[] parseTimeRangeDecimal(String raw) {
         if (raw == null) return new double[]{0.0, 0.0};
         String[] parts = raw.split("-");
         if (parts.length < 2) {
@@ -1460,10 +1556,16 @@ public class Dashboard {
         double start = parseTimeDecimal(parts[0].trim());
         double end = parseTimeDecimal(parts[1].trim());
         if (end <= start) end += 12;
-        return new double[]{start, end};
-    }
+        
+        if (start >= 4 && start <= 11) {
+            if (start <= 12) start += 12;
+            if (end <= 12) end += 12;
+        }
 
-    private boolean courseChecker(Course selectedCourse, User user) {
+        return new double[]{start, end};
+    }*/
+
+    private boolean courseChecker(Course selectedCourse, Students user) {
         if (selectedCourse == null || user == null) return false;
 
         // Exact duplicate (same course code + section)
@@ -1511,44 +1613,105 @@ public class Dashboard {
     }
     
     // di ko natest to
-    private String validateCourseForUser(Course selectedCourse, User user) {
+    private String validateCourseForUser(Course selectedCourse, Students user) {
         if (selectedCourse == null || user == null) return "Invalid selection";
 
+        // duplicate course/section 
         for (Course c : user.getCourses()) {
-            if (c.getCourseCode().equals(selectedCourse.getCourseCode())
-                    && c.getSection().equals(selectedCourse.getSection())) {
+            if (Objects.equals(c.getCourseCode(), selectedCourse.getCourseCode())
+                    && Objects.equals(c.getSection(), selectedCourse.getSection())) {
                 return "Duplicate course/section";
             }
         }
-
+        
+        
         for (Course c : user.getCourses()) {
-            if (c.getTimes().equals(selectedCourse.getTimes())
-                    && c.getDays().equals(selectedCourse.getDays())) {
-                return "Exact same time & days as " + c.getCourseCode() + " " + c.getSection();
+            if (Objects.equals(c.getTimes(), selectedCourse.getTimes())
+                    && Objects.equals(c.getDays(), selectedCourse.getDays())) {
+            	return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
             }
         }
 
+        // parse new course time and days
         double[] newRange = parseTimeRangeDecimal(selectedCourse.getTimes());
         double newStart = newRange[0];
         double newEnd = newRange[1];
         Set<String> newDays = parseDays(selectedCourse.getDays());
 
-        if (newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return null; // no schedule info, allow
+        // if no schedule info, allow
+        if (newDays == null || newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return null;
 
         for (Course c : user.getCourses()) {
             Set<String> existDays = parseDays(c.getDays());
-            if (!daysOverlap(newDays, existDays)) continue;
+            if (existDays == null || !daysOverlap(newDays, existDays)) continue;
 
             double[] existRange = parseTimeRangeDecimal(c.getTimes());
             double existStart = existRange[0];
             double existEnd = existRange[1];
 
+            // 
             if (newStart < existEnd && newEnd > existStart) {
                 return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
             }
         }
-
+                
         return null;
+    }
+
+    /**
+     * Parse "H:mm" or "HH:mm" into decimal hours (e.g. "9:30" -> 9.5).
+     * Returns 0.0 on parse failure.
+     */
+    private double parseTimeDecimal(String raw) {
+        if (raw == null) return 0.0;
+        String s = raw.trim();
+        if (s.isEmpty()) return 0.0;
+
+        try {
+            // Expect exactly "H:mm" or "HH:mm"
+            String[] parts = s.split(":");
+            if (parts.length == 0) return 0.0;
+            int h = Integer.parseInt(parts[0].replaceAll("\\D", ""));
+            int m = 0;
+            if (parts.length > 1) {
+                String ms = parts[1].replaceAll("\\D", "");
+                if (!ms.isEmpty()) {
+                    // if user somehow provided more than two digits, take first two
+                    if (ms.length() > 2) ms = ms.substring(0, 2);
+                    m = Integer.parseInt(ms);
+                }
+            }
+            if (m < 0) m = 0;
+            if (m > 59) m = 59;
+            // Return decimal hours (24-hour scale expected)
+            return h + (m / 60.0);
+        } catch (Exception ex) {
+            return 0.0;
+        }
+    }
+
+    /**
+     * Parse "start-end" where start and end are "H:mm" or "HH:mm".
+     * Returns [startDecimal, endDecimal]. If end <= start, adds 12 to end.
+     * Returns {0.0,0.0} on total failure.
+     */
+    private double[] parseTimeRangeDecimal(String raw) {
+        if (raw == null) return new double[]{0.0, 0.0};
+        String[] parts = raw.split("-");
+        if (parts.length < 1) return new double[]{0.0, 0.0};
+
+        double start = parseTimeDecimal(parts[0].trim());
+        double end = (parts.length >= 2) ? parseTimeDecimal(parts[1].trim()) : start;
+
+        // if parsing failed for both, return zeroes
+        if (start == 0 && end == 0) return new double[]{0.0, 0.0};
+
+        // If end is not later than start, assume it's in the PM next block (add 12)
+        if (end <= start) {
+            end += 12.0;
+        }
+
+        return new double[]{start, end};
     }
 
     // method for success message
@@ -1592,6 +1755,10 @@ public class Dashboard {
             if (tok == null || tok.isEmpty()) continue;
             String t = tok.replaceAll("[^A-Z]", "");
             if (t.isEmpty()) continue;
+            
+            if(t.contains("TBA")) {
+            	days.add("TBA");
+            }
 
             // Handle Thursday first so it's not mistaken for "T"
             if (t.contains("TH")) {
@@ -1601,7 +1768,7 @@ public class Dashboard {
             }
 
             if (t.contains("M")) days.add("M");
-            if (t.contains("T") && !t.contains("TH")) days.add("T");
+            if (t.contains("T") && !t.contains("TH") && !t.contains("TBA")) days.add("T");
             if (t.contains("W")) days.add("W");
             if (t.contains("SA")) days.add("Sa");
             if (t.contains("F")) days.add("F");
@@ -1617,7 +1784,7 @@ public class Dashboard {
         Set<String> set = parseDays(raw);
         if (set.isEmpty()) return lbl;
 
-        List<String> order = Arrays.asList("M","T","W","Th","F","Sa");
+        List<String> order = Arrays.asList("M","TBA","T","W","Th","F","Sa");
         List<String> present = new ArrayList<>();
         for (String o : order) if (set.contains(o)) present.add(o);
         String text = String.join(" ", present);
@@ -1626,6 +1793,37 @@ public class Dashboard {
         lbl.setFont(Fonts.loadMontserratRegular(12));
         lbl.setStyle("-fx-background-color: linear-gradient(#FFD54F, #ffb91a); -fx-background-radius: 8; -fx-padding: 6 10 6 10; -fx-text-fill: #0b2545; -fx-font-weight: bold;");
         return lbl;
+    }
+    
+    private boolean isCourseAdded(Course course, Students user) {
+        if (course == null || user == null) return false;
+        for (Course c : user.getCourses()) {
+            if (c == null) continue;
+            String cc1 = c.getCourseCode() == null ? "" : c.getCourseCode().trim();
+            String s1  = c.getSection()    == null ? "" : c.getSection().trim();
+            String cc2 = course.getCourseCode() == null ? "" : course.getCourseCode().trim();
+            String s2  = course.getSection()    == null ? "" : course.getSection().trim();
+            if (cc1.equalsIgnoreCase(cc2) && s1.equalsIgnoreCase(s2)) return true;
+        }
+        return false;
+    }
+    
+    private boolean overlaps(Course a, Course b) {
+        if (a == null || b == null) return false;
+        Set<String> daysA = parseDays(a.getDays());
+        Set<String> daysB = parseDays(b.getDays());
+        if (daysA == null || daysB == null) return false;
+        boolean daysOverlap = false;
+        for (String d : daysA) {
+            if (daysB.contains(d)) { daysOverlap = true; break; }
+        }
+        if (!daysOverlap) return false;
+
+        double[] rA = parseTimeRangeDecimal(a.getTimes());
+        double[] rB = parseTimeRangeDecimal(b.getTimes());
+        double sA = rA[0], eA = rA[1], sB = rB[0], eB = rB[1];
+        if ((sA == 0 && eA == 0) || (sB == 0 && eB == 0)) return false;
+        return sA < eB && eA > sB;
     }
 
     
