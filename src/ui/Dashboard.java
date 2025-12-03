@@ -1,5 +1,6 @@
 package ui;
 
+import calendar.Calendar;
 import application.Fonts;
 import application.Main;
 import courses.Course;
@@ -39,8 +40,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
- 
-import calendar.Calendar;
 import javafx.scene.control.ListView;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
@@ -88,6 +87,7 @@ public class Dashboard {
         double contentShift = 200;   // control this if masyadong malayo yung animation nya sa right
         sidebar.setPrefWidth(sidebarWidth);
         sidebar.setPrefHeight(visualBounds.getHeight());
+        double sidebarScrollExtraLimit = 100; // extra space for horizontal scroll 
         // hidden by default; menu button will toggle it
         sidebar.setVisible(false);
         sidebar.setTranslateX(-sidebarWidth);
@@ -260,8 +260,21 @@ public class Dashboard {
             }
         });
 
-        // sidebar add to the screen all
-        sidebar.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
+        Pane sidebarContent = new Pane();
+        sidebarContent.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
+
+        javafx.scene.control.ScrollPane sidebarScroll = new javafx.scene.control.ScrollPane(sidebarContent);
+        sidebarScroll.setLayoutX(0);
+        sidebarScroll.setLayoutY(0);
+        sidebarScroll.setPrefWidth(sidebarWidth);
+        sidebarScroll.setPrefHeight(visualBounds.getHeight());
+        sidebarScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sidebarScroll.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        sidebarScroll.setPannable(true);
+        sidebarScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        // add bg and scroll pane to sidebar
+        sidebar.getChildren().addAll(sidebarScroll);
 
 
         // --- Contents ---
@@ -269,6 +282,7 @@ public class Dashboard {
         content.setStyle("-fx-background-color: transparent;");
         content.setLayoutX(0);
         content.setLayoutY(0);
+        content.setPrefWidth(visualBounds.getWidth());
 
         // Put content to make scrollable
         javafx.scene.control.ScrollPane contentScroll = new javafx.scene.control.ScrollPane(content);
@@ -281,6 +295,27 @@ public class Dashboard {
         contentScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         root.getChildren().addAll(sidebar, contentScroll, menuBtn);
+
+        // When sidebar opens,  horizontal scrolling since nag-ooverflow 
+        sidebar.visibleProperty().addListener((obs, oldV, newV) -> {
+            try {
+                if (newV) {
+                    contentScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                    contentScroll.setFitToWidth(false);
+                    // increase content width so horizontal scrollbar appears and you can scroll
+                    try {
+                        double extra = Math.min(sidebarWidth, sidebarScrollExtraLimit);
+                        content.setPrefWidth(scene.getWidth() + extra);
+                    } catch (Exception ex) {}
+                } else {
+                    contentScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+                    contentScroll.setFitToWidth(true);
+                    try {
+                        content.setPrefWidth(scene.getWidth());
+                    } catch (Exception ex) {}
+                }
+            } catch (Exception ignored) {}
+        });
 
         // a
         try {
@@ -714,7 +749,21 @@ public class Dashboard {
         bottomSpacer.setPrefWidth(1);
         bottomSpacer.setPrefHeight(400);
 
-        content.getChildren().addAll(dropdown, btnAdd, btnDelete, calendarPane, itemsLabel, listView, bottomSpacer);
+        // catalogue button
+        Button btnCatalogueMain = new Button("CATALOGUE");
+        btnCatalogueMain.setLayoutX(220);
+        btnCatalogueMain.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 14);
+        btnCatalogueMain.setPrefWidth(220);
+        btnCatalogueMain.setPrefHeight(48);
+        btnCatalogueMain.setFont(Fonts.loadSensaWild(22));
+        btnCatalogueMain.getStyleClass().add("btn-create");
+        btnCatalogueMain.getStyleClass().add("sidebar-pill");
+        btnCatalogueMain.setOnAction(ev -> {
+            System.out.println("WALA PAAAAAA <WOIJOIDJASOIDJ");
+
+        });
+
+        content.getChildren().addAll(dropdown, btnAdd, btnDelete, calendarPane, itemsLabel, listView, btnCatalogueMain, bottomSpacer);
         // 
         try {
             profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
@@ -862,22 +911,37 @@ public class Dashboard {
     public Set<String> parseDays(String raw) {
         Set<String> days = new HashSet<>();
         if (raw == null) return days;
+        String s = raw.toUpperCase();
+        s = s.replaceAll("[,/\\\\-]", " ").trim();
+        if (s.isEmpty()) return days;
 
-        String s = raw.toUpperCase().replaceAll("\\s+", "");
+        String[] tokens = s.split("\\s+");
 
-        if (s.contains("TH")) {
-            days.add("Th");
-            s = s.replace("TH", ""); 
+        // clean thursday
+        for (String tok : tokens) {
+            String t = tok.replaceAll("[^A-Z]", "");
+            if (t.equals("TH")) days.add("Th");
         }
 
-        for (char c : s.toCharArray()) {
-            switch (c) {
-                case 'M': days.add("M"); break;
-                case 'T': days.add("T"); break;   
-                case 'W': days.add("W"); break;
-                case 'F': days.add("F"); break;
+        // clean saturday
+        for (String tok : tokens) {
+            String t = tok.replaceAll("[^A-Z]", "");
+            if (t.equals("SA")) days.add("Sa");
+        }
+
+        // the rest of the weeks that are not double letters
+        for (String tok : tokens) {
+            String t = tok.replaceAll("[^A-Z]", "");
+            if (t.length() == 1) {
+                switch (t.charAt(0)) {
+                    case 'M': days.add("M"); break;
+                    case 'T': days.add("T"); break;
+                    case 'W': days.add("W"); break;
+                    case 'F': days.add("F"); break;
+                }
             }
         }
+
         return days;
     }    
 

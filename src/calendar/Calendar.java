@@ -5,6 +5,8 @@ import application.Fonts;
 import courses.Course;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Shape;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -29,7 +31,7 @@ public class Calendar {
     private final double height;
     private final double timeColWidth = 110;
 
-    private final int dayCount = 5;
+    private final int dayCount = 6;
 
     private final int rows = 12;
 
@@ -66,7 +68,7 @@ public class Calendar {
         root.getChildren().add(timeCol);
 
         // Add day header rectangles and labels
-        String[] dayNames = {"Monday","Tuesday","Wednesday","Thursday","Friday"};
+        String[] dayNames = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
         for (int d = 0; d < dayCount; d++) {
             double x = timeColWidth + d * cellWidth;
 
@@ -104,18 +106,18 @@ public class Calendar {
         return root;
     }
 
- // ---------- Replace the existing addCourse(...) method with this ----------
-
+    // Adds a block representing a course to the calendar
     public void addCourse(Course selectedCourse, ObservableList<Course> list) {
         if (selectedCourse == null) return;
-
+        
+        
         // Checking if there is a duplicate course inside the calendar
         boolean exists = calendarCourses.stream()
                 .anyMatch(c -> c.getCourseCode().equals(selectedCourse.getCourseCode()) &&
                                c.getSection().equals(selectedCourse.getSection()));
-
-        if (exists) {
-            return;
+        
+        if(exists) {
+        		return;
         }
 
         String times = selectedCourse.getTimes();
@@ -129,27 +131,23 @@ public class Calendar {
 
         // Only process the first time range and trim the data
         String timeSeg = times.split(",")[0].trim();
-        //If missing dash, skip
-        if (!timeSeg.contains("-")) return;
-
-        // Parse hour
         String[] hs = timeSeg.split("-");
-        int rawStart = parseHour(hs.length > 0 ? hs[0].trim() : "");
-        int rawEnd   = parseHour(hs.length > 1 ? hs[1].trim() : "");
 
-        // Decide best 24-hour interpretation for display
-        int[] chosen = chooseBest24HourRange(rawStart, rawEnd);
+        int[] startParts = parseTime(hs.length > 0 ? hs[0].trim() : ""); 
+        int[] endParts = parseTime(hs.length > 1 ? hs[1].trim() : "");
 
-        int startHour24 = chosen[0]; 
-        int endHour24   = chosen[1];
+
+        double startDecimal = startParts[0] + (startParts[1] / 60.0);
+        double endDecimal = endParts[0] + (endParts[1] / 60.0);
+
+        if (startDecimal < 7) startDecimal += 12;
+        if (endDecimal <= startDecimal) endDecimal += 12;
 
         int gridStart = 7;
-        int gridEnd = gridStart + rows; // exclusive upper bound, so 19
-
-        // If the chosen range is completely outside the visible grid, we will still
-        // attempt to clamp the displayed portion so at least something is shown.
-        double y = headerHeight + (Math.max(0, Math.min(gridEnd, startHour24) - gridStart)) * rowHeight;
-        double heightPx = Math.max(rowHeight * (Math.max(0, Math.min(gridEnd, endHour24) - Math.max(gridStart, startHour24))), rowHeight);
+        double y = headerHeight + Math.max(0, (startDecimal - gridStart) * rowHeight);
+        double duration = endDecimal - startDecimal;
+        int hoursCeil = Math.max(1, (int) Math.ceil(duration));
+        double heightPx = Math.max(rowHeight * hoursCeil, rowHeight);
 
         // Determine which days the course applies to
         boolean[] dayFlags = parseDays(daysStr);
@@ -161,15 +159,15 @@ public class Calendar {
             double x = timeColWidth + d * cellWidth;
 
             StackPane block = new StackPane();
-            block.setPrefWidth(cellWidth - 12);
-            block.setPrefHeight(Math.max(28, heightPx - 8));
+            double blockWidth = cellWidth - 12;
+            double blockHeight = Math.max(28, heightPx - 8);
+            block.setPrefWidth(blockWidth);
+            block.setPrefHeight(blockHeight);
 
-            Rectangle bgRect = new Rectangle(cellWidth - 12, Math.max(24, heightPx - 8));
-            bgRect.setFill(Color.web("#1976D2"));
-            bgRect.setArcWidth(12);
-            bgRect.setArcHeight(12);
-            bgRect.setStroke(Color.web("#FFD54F"));
-            bgRect.setStrokeWidth(2);
+            Rectangle baseRect = new Rectangle(blockWidth, Math.max(24, blockHeight));
+            baseRect.setFill(Color.web("#1976D2"));
+            baseRect.setArcWidth(12);
+            baseRect.setArcHeight(12);
 
             DropShadow drop = new DropShadow();
             drop.setBlurType(BlurType.GAUSSIAN);
@@ -177,7 +175,60 @@ public class Calendar {
             drop.setSpread(0.14);
             drop.setOffsetY(2);
             drop.setColor(Color.color(0,0,0,0.28));
-            bgRect.setEffect(drop);
+            baseRect.setEffect(drop);
+
+            Node bgNode = baseRect;
+
+            // custom block shape for the nag-iisang 1hr and 30 minute class 
+            int endMinute = endParts[1];
+            if (endMinute == 30) {
+                // if 1.5 hours
+                if (duration >= 1.5) {
+                    try {
+                        double baseH = baseRect.getHeight();
+                        double triTopY = baseH - rowHeight; // top edge of second hour
+                        double triBottomY = baseH;
+
+                        // make triangle that will cut through the existing block
+                        Polygon tri = new Polygon();
+                        tri.getPoints().addAll(
+                            blockWidth, triTopY,
+                            blockWidth, triBottomY,
+                            0.0, triBottomY
+                        );
+
+                        
+                        Shape cut = Shape.subtract(baseRect, tri); // subtract the rectangle to the right traignel
+                        cut.setFill(Color.web("#1976D2"));
+                        cut.setStroke(Color.web("#FFD54F"));
+                        cut.setStrokeWidth(2);
+                        cut.setEffect(drop);
+                        bgNode = cut;
+                    } catch (Exception ex) {
+                        bgNode = baseRect;
+                    }
+                } else {
+                    // sometimes it errors a smaller diagonal with extra borders (based on screen size)
+                    try {
+                        double triSize = Math.min(18, blockHeight / 2.0);
+                        Polygon triSmall = new Polygon();
+                        triSmall.getPoints().addAll(
+                            blockWidth, blockHeight,
+                            blockWidth - triSize, blockHeight,
+                            blockWidth, blockHeight - triSize
+                        );
+
+                        Shape cutSmall = Shape.subtract(baseRect, triSmall);
+                        cutSmall.setFill(Color.web("#1976D2"));
+                        cutSmall.setStroke(Color.web("#FFD54F"));
+                        cutSmall.setStrokeWidth(2);
+                        cutSmall.setEffect(drop);
+                        bgNode = cutSmall;
+                    } catch (Exception ex) {
+                        bgNode = baseRect;
+                    }
+                }
+            }
 
             // Course text
             Label info = new Label(
@@ -189,7 +240,13 @@ public class Calendar {
             info.setWrapText(true);
             info.setMaxWidth(cellWidth - 28);
 
-            block.getChildren().addAll(bgRect, info);
+            // for border handling of the 1hr and 30 minute block
+            if (bgNode == baseRect) {
+                baseRect.setStroke(Color.web("#FFD54F"));
+                baseRect.setStrokeWidth(2);
+            }
+
+            block.getChildren().addAll(bgNode, info);
             block.setLayoutX(x + 6);
             block.setLayoutY(y + 6);
 
@@ -197,42 +254,10 @@ public class Calendar {
             created.add(block);
         }
 
-        if (!created.isEmpty()) {
-            blocks.put(selectedCourse, created);
-            calendarCourses.add(selectedCourse);
-        }
-    }
-
-    // For better display of the time blocks
-    private int[] chooseBest24HourRange(int rawStart, int rawEnd) {
-        // Defaults
-        if (rawStart <= 0) rawStart = 0;
-        if (rawEnd <= 0) rawEnd = 0;
-
-        // Default values
-        int defStart = rawStart;
-        int defEnd   = rawEnd;
-        if (defEnd <= defStart) defEnd += 12;
-
-        // PM Interpretation
-        int pmStart = (rawStart <= 12 ? rawStart + 12 : rawStart);
-        int pmEnd   = (rawEnd   <= 12 ? rawEnd   + 12 : rawEnd);
-        if (pmEnd <= pmStart) pmEnd += 12; // ensure pmEnd > pmStart
-
-        // Visible window
-        int gridStart = 7;
-        int gridEnd = gridStart + rows; // exclusive
-
-        boolean defInWindow = (defStart < gridEnd) && (defEnd > gridStart); // any overlap
-        boolean pmInWindow  = (pmStart  < gridEnd) && (pmEnd  > gridStart);
-
-        // Prefer the interpretation that has overlap with the visible grid
-        if (pmInWindow && !defInWindow) {
-            return new int[]{pmStart, pmEnd};
-        } else {
-            // prefer default in tie or none
-            return new int[]{defStart, defEnd};
-        }
+	        if (!created.isEmpty()) {
+	    		blocks.put(selectedCourse, created);
+	    		calendarCourses.add(selectedCourse);
+	    }
     }
 
     // Removes all course blocks associated with the given course
@@ -266,6 +291,37 @@ public class Calendar {
         return 0;
     }
 
+    // clean time string into hour and minute parts
+    private static int[] parseTime(String raw) {
+        if (raw == null || raw.isEmpty()) return new int[]{0,0};
+        raw = raw.trim();
+
+        try {
+            String[] parts = raw.split(":");
+            String hStr = parts[0].replaceAll("[^0-9]", "");
+            int h = hStr.isEmpty() ? 0 : Integer.parseInt(hStr);
+            int m = 0;
+            if (parts.length > 1) {
+                String minPart = parts[1].replaceAll("[^0-9]", "");
+                if (!minPart.isEmpty()) {
+                    if (minPart.length() > 2) minPart = minPart.substring(0, 2);
+                    m = Integer.parseInt(minPart);
+                }
+            }
+            return new int[]{h, m};
+        } catch (Exception ex) {
+            Matcher mm = Pattern.compile("(\\d{1,2})(?:[:.](\\d{1,2}))?").matcher(raw);
+            if (mm.find()) {
+                try {
+                    int hh = Integer.parseInt(mm.group(1));
+                    int mmn = mm.group(2) != null ? Integer.parseInt(mm.group(2)) : 0;
+                    return new int[]{hh, mmn};
+                } catch (Exception ignored) {}
+            }
+        }
+        return new int[]{0,0};
+    }
+
     // Converts day strings into a dayCount-sized boolean array
     private boolean[] parseDays(String raw) {
         boolean[] flags = new boolean[dayCount];
@@ -292,6 +348,7 @@ public class Calendar {
             if (t.contains("M")) flags[0] = true;
             if (t.contains("T") && !t.contains("TH")) flags[1] = true;
             if (t.contains("W")) flags[2] = true;
+            if (t.contains("SA")) flags[5] = true;
             if (t.contains("F")) flags[4] = true;
 
         }
