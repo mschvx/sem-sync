@@ -12,7 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +21,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import users.DegreeLookup;
@@ -68,6 +70,9 @@ public class Dashboard {
         primaryStage.setY(visualBounds.getMinY());
         primaryStage.setWidth(visualBounds.getWidth());
         primaryStage.setHeight(visualBounds.getHeight());
+
+        // NOTE TO SELF: CHANGE FOR BOTTOM PADDING
+        final double BOTTOM_PADDING = 100; // pixels
 
 
         // menu button 
@@ -332,7 +337,14 @@ public class Dashboard {
                 } catch (Exception ex) {
                 }
             });
-        } catch (Exception ignored) {}
+        } catch (Exception ignore) {}
+
+        // go to top of page
+        try {
+            javafx.application.Platform.runLater(() -> {
+                try { contentScroll.setVvalue(0.0); } catch (Exception ignore) {}
+            });
+        } catch (Exception ignore) {}
 
         // profile state (switch to dashboard staet)
         try {
@@ -502,8 +514,8 @@ public class Dashboard {
         calendarPane.setLayoutX(calX);
         calendarPane.setLayoutY(calendarTopY);
 
-        // header manage Classes section 
-        Label manageLabel = new Label("Manage Classes");
+        // header add Classes section 
+        Label manageLabel = new Label("Add Classes");
         manageLabel.setFont(Fonts.loadMontserratRegular(28));
         manageLabel.setLayoutX(160);
         manageLabel.setLayoutY(calendarTopY + calHeight + 16);
@@ -512,7 +524,7 @@ public class Dashboard {
         manageLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
 
         // Search fields (placeholders - not wired yet)
-        Label lblSearchCode = new Label("Search by Course code");
+        Label lblSearchCode = new Label("Search by Course Code");
         lblSearchCode.setLayoutX(160);
         lblSearchCode.setLayoutY(calendarTopY + calHeight + 100);
         TextField txtSearchCode = new TextField();
@@ -640,6 +652,23 @@ public class Dashboard {
         } catch (IOException error) {
             System.out.print("Error reading course_offerings.csv");
         }
+        // lec/la pairings
+        try {
+            for (Laboratory lab : labSections) {
+                if (lab.getlectureSection() != null) continue;
+                String lecSec = lab.getSection();
+                if (lecSec == null) continue;
+                String[] parts = lecSec.split("-");
+                if (parts.length > 0) lecSec = parts[0].trim();
+                for (Lecture L : lecSections) {
+                    if (L.getSection() != null && lecSec.equalsIgnoreCase(L.getSection())) {
+                        L.addLabSection(lab);
+                        lab.setlectureSection(L);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
         
      
         
@@ -749,69 +778,180 @@ public class Dashboard {
         btnShowAll.layoutYProperty().bind(btnSearch.layoutYProperty());
 
         btnShowAll.setOnAction(ev -> {
-            System.out.println("SHOW ALL pressed WALA PAAAAA PLACEHOLDER AAA");
+            // will be wired after table/pagination is created
         });
 
         searchArea.getChildren().addAll(courseBox, sectionBox, btnSearch, btnShowAll);
 
-        // Table below search area for results
-        TableView<Course> classTable = new TableView<>();
+        // Table for add classes
+        final TableView<Course>[] editTableRef = new TableView[]{null};
+        class PairView {
+            private Lecture lecture;
+            private Laboratory lab;
+            public PairView(Lecture lecture, Laboratory lab) { this.lecture = lecture; this.lab = lab; }
+            public Lecture getLecture() { return lecture; }
+            public Laboratory getLab() { return lab; }
+            public String getCourseCode() { if (lecture != null) return lecture.getCourseCode(); if (lab != null) return lab.getCourseCode(); return ""; }
+        }
+
+        TableView<PairView> classTable = new TableView<>();
         classTable.prefWidthProperty().bind(searchArea.prefWidthProperty());
-        classTable.setPrefHeight(220);
+        classTable.setPrefHeight(420);
+        classTable.setFixedCellSize(200);
         classTable.layoutXProperty().bind(searchArea.layoutXProperty());
 
         classTable.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
-            searchArea.getLayoutY() + btnSearch.getLayoutY() + btnSearch.getPrefHeight() + 24,
+            searchArea.getLayoutY() + btnSearch.getLayoutY() + btnSearch.getPrefHeight() + 36,
             searchArea.layoutYProperty(), btnSearch.layoutYProperty(), btnSearch.prefHeightProperty()));
 
         // Columns
-        TableColumn<Course, String> codeCol = new TableColumn<>("Code");
+        TableColumn<PairView, String> codeCol = new TableColumn<>("Code");
         codeCol.setPrefWidth(180);
         codeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
             c.getValue() == null ? "" : c.getValue().getCourseCode()));
-        codeCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, String>() {
+        codeCol.setCellFactory(col -> new javafx.scene.control.TableCell<PairView, String>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); } else {
+                if (empty || item == null) { setText(null); setGraphic(null);} else {
                     setText(item);
-                    setFont(Fonts.loadMontserratRegular(20));
-                    setStyle("-fx-text-fill: black;");
+                    if (!getStyleClass().contains("code-cell-font")) getStyleClass().add("code-cell-font");
                 }
             }
         });
 
-        TableColumn<Course, String> detailsCol = new TableColumn<>("Class Details");
+        TableColumn<PairView, PairView> detailsCol = new TableColumn<>("Class Details");
         // Make details column responsive to table width
         detailsCol.prefWidthProperty().bind(classTable.widthProperty().subtract(codeCol.prefWidthProperty()).subtract(160));
-        detailsCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-            c.getValue() == null ? "" : (c.getValue().getCourseTitle() + " — Section: " + c.getValue().getSection())));
-        detailsCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, String>() {
-            @Override protected void updateItem(String item, boolean empty) {
+        detailsCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
+        detailsCol.setCellFactory(col -> new javafx.scene.control.TableCell<PairView, PairView>() {
+            @Override protected void updateItem(PairView item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); } else {
-                    setText(item);
-                    setFont(Fonts.loadMontserratRegular(20));
-                    setStyle("-fx-text-fill: black;");
+                if (empty || item == null) { setText(null); setGraphic(null); return; }
+
+                // design for lecture UI in table
+                VBox leftCard = new VBox();
+                leftCard.setPrefWidth((detailsCol.getWidth() - 24) / 2.0);
+                Label leftHeader = new Label("Lecture/Main");
+                leftHeader.setFont(Fonts.loadMontserratRegular(16));
+                leftHeader.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                Label leftUnits = new Label( (item.getLecture() != null ? String.valueOf(item.getLecture().getUnits()) : "") + " units");
+                leftUnits.setFont(Fonts.loadMontserratRegular(14));
+                leftUnits.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                HBox leftHeaderBox = new HBox();
+                leftHeaderBox.getStyleClass().add("pair-card-header");
+                leftHeaderBox.setPrefWidth(leftCard.getPrefWidth());
+                leftHeaderBox.getChildren().addAll(leftHeader);
+                leftHeaderBox.setSpacing(8);
+                Region leftSpacer = new Region();
+                HBox.setHgrow(leftSpacer, javafx.scene.layout.Priority.ALWAYS);
+                leftHeaderBox.getChildren().addAll(leftSpacer, leftUnits);
+                Label leftBody = new Label();
+                leftBody.setFont(Fonts.loadMontserratRegular(14));
+                leftBody.getStyleClass().add("pair-card-body");
+                leftBody.setWrapText(true);
+                if (item.getLecture() != null) {
+                    Lecture lec = item.getLecture();
+                    leftBody.setText(lec.getSection() + " - (" + lec.getTimes() + ")\nLocation: " + (lec.getRooms() == null ? "TBA" : lec.getRooms()));
+                } else {
+                    leftBody.setText("-- No lecture --");
                 }
+                leftCard.getChildren().addAll(leftHeaderBox, leftBody);
+
+                // design for lab ui intable
+                VBox rightCard = new VBox();
+                rightCard.setPrefWidth((detailsCol.getWidth() - 24) / 2.0);
+                Label rightHeader = new Label("Lab/Recit");
+                rightHeader.setFont(Fonts.loadMontserratRegular(16));
+                rightHeader.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                Label rightUnits = new Label( (item.getLab() != null ? String.valueOf(item.getLab().getUnits()) : "") + " units");
+                rightUnits.setFont(Fonts.loadMontserratRegular(14));
+                rightUnits.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+                HBox rightHeaderBox = new HBox();
+                rightHeaderBox.getStyleClass().add("pair-card-header");
+                rightHeaderBox.setPrefWidth(rightCard.getPrefWidth());
+                rightHeaderBox.getChildren().addAll(rightHeader);
+                rightHeaderBox.setSpacing(8);
+                Region rightSpacer = new Region();
+                HBox.setHgrow(rightSpacer, javafx.scene.layout.Priority.ALWAYS);
+                rightHeaderBox.getChildren().addAll(rightSpacer, rightUnits);
+                Label rightBody = new Label();
+                rightBody.setFont(Fonts.loadMontserratRegular(14));
+                rightBody.getStyleClass().add("pair-card-body");
+                rightBody.setWrapText(true);
+                if (item.getLab() != null) {
+                    Laboratory lab = item.getLab();
+                    rightBody.setText(lab.getSection() + " - (" + lab.getTimes() + ")\nLocation: " + (lab.getRooms() == null ? "TBA" : lab.getRooms()));
+                } else {
+                    rightBody.setText("-- No corresponding class --");
+                }
+                rightCard.getChildren().addAll(rightHeaderBox, rightBody);
+
+                HBox container = new HBox(12);
+                container.getChildren().addAll(leftCard, rightCard);
+                container.getStyleClass().add("pair-card-container");
+                setText(null);
+                setGraphic(container);
             }
         });
 
-        TableColumn<Course, Course> actionCol = new TableColumn<>("Action");
+        TableColumn<PairView, PairView> actionCol = new TableColumn<>("Action");
         actionCol.setPrefWidth(160);
         actionCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
-        actionCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, Course>() {
+        actionCol.setCellFactory(col -> new javafx.scene.control.TableCell<PairView, PairView>() {
             private final Button btn = new Button("ADD");
             {
-                btn.getStyleClass().add("btn-create");
+                btn.getStyleClass().add("add-btn-green");
                 btn.setPrefWidth(120);
                 btn.setPrefHeight(36);
             }
-            @Override protected void updateItem(Course item, boolean empty) {
+            @Override protected void updateItem(PairView item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setGraphic(null);
                 } else {
                     btn.setFont(Fonts.loadMontserratRegular(16));
+                    btn.setOnAction(ev -> {
+                        try {
+                            boolean addedAny = false;
+                            String failReason = null;
+                            if (item.getLecture() != null) {
+                                Lecture lec = item.getLecture();
+                                String reason = validateCourseForUser(lec, user);
+                                if (reason == null) {
+                                    user.addCourse(lec);
+                                    calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                                    addedAny = true;
+                                } else {
+                                    failReason = "Lecture not added: " + reason;
+                                }
+                            }
+                            if (item.getLab() != null) {
+                                Laboratory lab = item.getLab();
+                                String reason = validateCourseForUser(lab, user);
+                                if (reason == null) {
+                                    user.addCourse(lab);
+                                    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                                    addedAny = true;
+                                } else {
+                                    if (failReason == null) failReason = "Lab not added: " + reason;
+                                    else failReason += "; Lab not added: " + reason;
+                                }
+                            }
+
+                            if (addedAny) {
+                                btn.setDisable(true);
+                                btn.setText("ADDED");
+                                showToast(root, "Added to your schedule", 2200);
+                            }
+                            if (!addedAny && failReason != null) {
+                                showToast(root, failReason, 3200);
+                            } else if (!addedAny && failReason == null) {
+                                showToast(root, "Nothing added", 1800);
+                            }
+                        } catch (Exception ex) { ex.printStackTrace(); }
+                    });
                     setGraphic(btn);
                 }
             }
@@ -828,17 +968,280 @@ public class Dashboard {
         placeholder.prefWidthProperty().bind(classTable.widthProperty());
         classTable.setPlaceholder(placeholder);
 
+        // pagination of 5 per section
+        final ObservableList<PairView> fullResults = FXCollections.observableArrayList();
+        final int pageSize = 5;
+        final int[] currentPage = new int[]{1};
+
+
+        final Runnable[] updatePaginationUI = new Runnable[1];
+        Runnable updatePage = () -> {
+            int total = fullResults.size();
+            int totalPages = Math.max(1, (int) Math.ceil(total / (double) pageSize));
+            if (currentPage[0] > totalPages) currentPage[0] = totalPages;
+            if (currentPage[0] < 1) currentPage[0] = 1;
+            int from = (currentPage[0] - 1) * pageSize;
+            int to = Math.min(from + pageSize, total);
+            List<PairView> pageItems = new ArrayList<>();
+            if (from < to) pageItems.addAll(fullResults.subList(from, to));
+            classTable.setItems(FXCollections.observableArrayList(pageItems));
+            double rows = Math.max(1, pageItems.size());
+            double header = 38; 
+            double newH = header + (classTable.getFixedCellSize() * rows);
+            classTable.setPrefHeight(Math.max(newH, 120));
+            try { if (updatePaginationUI[0] != null) updatePaginationUI[0].run(); } catch (Exception ignore) {}
+        };
+
+        // pagination controls
+        Button btnPrevPage = new Button("<");
+        Button btnNextPage = new Button(">");
+        Label lblPage = new Label();
+        btnPrevPage.setPrefWidth(48);
+        btnNextPage.setPrefWidth(48);
+        lblPage.setFont(Fonts.loadMontserratRegular(18));
+
+        // do nothing if max left and right 
+
+        btnPrevPage.setOnAction(ev2 -> {
+            if (btnPrevPage.isDisabled()) return;
+            if (currentPage[0] > 1) {
+                currentPage[0]--;
+                updatePage.run();
+            }
+        });
+        btnNextPage.setOnAction(ev2 -> {
+            if (btnNextPage.isDisabled()) return;
+            int total = fullResults.size();
+            int totalPages = Math.max(1, (int) Math.ceil(total / (double) pageSize));
+            if (currentPage[0] < totalPages) {
+                currentPage[0]++;
+                updatePage.run();
+            }
+        });
+
+        Pane paginationPane = new Pane();
+        paginationPane.getStyleClass().add("pagination-pane");
+        paginationPane.setPrefHeight(64);
+        paginationPane.setPrefWidth(searchArea.getPrefWidth());
+        paginationPane.layoutXProperty().bind(searchArea.layoutXProperty());
+        paginationPane.layoutYProperty().bind(classTable.layoutYProperty().add(classTable.prefHeightProperty()).add(12));
+
+        HBox paginationBox = new HBox(12);
+        paginationBox.getStyleClass().add("pagination-hbox");
+        paginationBox.prefWidthProperty().bind(paginationPane.widthProperty());
+        paginationBox.setPrefHeight(56);
+        // buttons style classes
+        btnPrevPage.getStyleClass().add("pagination-btn");
+        btnNextPage.getStyleClass().add("pagination-btn");
+        lblPage.getStyleClass().add("pagination-label");
+
+        // center horizontally
+        paginationBox.layoutXProperty().bind(paginationPane.widthProperty().subtract(paginationBox.widthProperty()).divide(2));
+        paginationBox.setLayoutY(8);
+        paginationBox.getChildren().addAll(btnPrevPage, lblPage, btnNextPage);
+        paginationPane.getChildren().add(paginationBox);
+        // initially hidden until results exist
+        paginationPane.setVisible(false);
+        paginationPane.setManaged(false);
+
+        updatePaginationUI[0] = () -> {
+            int total = fullResults.size();
+            int totalPages = Math.max(1, (int) Math.ceil(total / (double) pageSize));
+            boolean has = total > 0;
+            paginationPane.setVisible(has);
+            paginationPane.setManaged(has);
+            lblPage.setText(currentPage[0] + " / " + totalPages + "   (" + total + " results)");
+            btnPrevPage.setDisable(currentPage[0] <= 1);
+            btnNextPage.setDisable(currentPage[0] >= totalPages);
+        };
+
+        
+
+        // populate table
+        java.util.function.BiConsumer<Boolean, String[]> populate = (showAllFlag, params) -> {
+            fullResults.clear();
+            String codeParam = params != null && params.length > 0 ? params[0] : "";
+            String sectionParam = params != null && params.length > 1 ? params[1] : "";
+            String codeNorm = normalizeCourseCode(codeParam == null ? "" : codeParam).toUpperCase();
+            String sectionNorm = sectionParam == null ? "" : sectionParam.trim().toUpperCase();
+
+            // include lectures and pair with their lab sections if available
+            for (Lecture l : lecSections) {
+                boolean matchesCode = codeNorm.isEmpty() || normalizeCourseCode(l.getCourseCode()).contains(codeNorm);
+                if (!matchesCode) continue;
+
+                if (l.getLabSections() == null || l.getLabSections().isEmpty()) {
+                    // if no lab
+                    if (sectionNorm.isEmpty() || (l.getSection() != null && l.getSection().toUpperCase().contains(sectionNorm))) {
+                        fullResults.add(new PairView(l, null));
+                    }
+                } else {
+                    boolean anyAdded = false;
+                    for (Laboratory lab : l.getLabSections()) {
+                        boolean matchesSection = sectionNorm.isEmpty() || (lab.getSection() != null && lab.getSection().toUpperCase().contains(sectionNorm)) || (l.getSection() != null && l.getSection().toUpperCase().contains(sectionNorm));
+                        if (matchesSection) {
+                            fullResults.add(new PairView(l, lab));
+                            anyAdded = true;
+                        }
+                    }
+                    if (!anyAdded && sectionNorm.isEmpty()) {
+                        fullResults.add(new PairView(l, null));
+                    }
+                }
+            }
+
+            
+            for (Laboratory lab : labSections) {
+                if (lab.getlectureSection() != null) continue;
+                boolean matchesCode = codeNorm.isEmpty() || normalizeCourseCode(lab.getCourseCode()).contains(codeNorm);
+                if (!matchesCode) continue;
+                if (sectionNorm.isEmpty() || (lab.getSection() != null && lab.getSection().toUpperCase().contains(sectionNorm))) {
+                    fullResults.add(new PairView(null, lab));
+                }
+            }
+
+            currentPage[0] = 1;
+            updatePage.run();
+            int total = fullResults.size();
+            int totalPages = Math.max(1, (int) Math.ceil(total / (double) pageSize));
+            lblPage.setText(currentPage[0] + " / " + totalPages + "   (" + total + " results)");
+            btnPrevPage.setDisable(currentPage[0] <= 1);
+            btnNextPage.setDisable(currentPage[0] >= totalPages);
+        };
+
+        // wire search buttons 
+        btnShowAll.setOnAction(ev -> {
+            populate.accept(true, new String[]{"",""});
+        });
+        btnSearch.setOnAction(ev -> {
+            String code = txtSearchCode.getText() == null ? "" : txtSearchCode.getText().trim();
+            String section = txtSearchSection.getText() == null ? "" : txtSearchSection.getText().trim();
+            // if both empty, act like show all
+            if (code.isEmpty() && section.isEmpty()) {
+                populate.accept(true, new String[]{"",""});
+            } else {
+                populate.accept(false, new String[]{code, section});
+            }
+        });
+
+        // Edit classes section
+        Label editLabel = new Label("Edit Classes");
+        editLabel.setFont(Fonts.loadMontserratRegular(28));
+        editLabel.setPrefWidth(calWidth);
+        editLabel.setPrefHeight(48);
+        editLabel.layoutXProperty().bind(searchArea.layoutXProperty());
+        editLabel.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            classTable.getLayoutY() + classTable.getPrefHeight() + (paginationPane == null ? 0 : paginationPane.getPrefHeight()) + 24,
+            classTable.layoutYProperty(), classTable.prefHeightProperty(), paginationPane.prefHeightProperty()));
+        editLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
+
+        // Table for editing classes with class and action column
+        TableView<Course> editTable = new TableView<>();
+        editTable.prefWidthProperty().bind(searchArea.prefWidthProperty());
+        editTable.setPrefHeight(360);
+        // allow cell factories above to reference this table
+        try { editTableRef[0] = editTable; } catch (Exception ignore) {}
+        editTable.layoutXProperty().bind(searchArea.layoutXProperty());
+        editTable.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            editLabel.getLayoutY() + editLabel.getPrefHeight() + 24,
+            editLabel.layoutYProperty(), editLabel.prefHeightProperty()));
+
+        TableColumn<Course, String> classColSmall = new TableColumn<>("Class");
+        // class column take remaining width
+        classColSmall.prefWidthProperty().bind(editTable.widthProperty().subtract(160));
+        classColSmall.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+            c.getValue() == null ? "" : (c.getValue().getCourseCode() + " — " + c.getValue().getCourseTitle() + " (Sec " + c.getValue().getSection() + ")")
+        ));
+        classColSmall.setCellFactory(col -> new javafx.scene.control.TableCell<Course, String>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    Course c = getTableView().getItems().get(getIndex());
+                    if (c == null) { setText(null); setGraphic(null); return; }
+
+                    // Card container
+                    HBox card = new HBox();
+                    card.setSpacing(12);
+                    card.getStyleClass().add("edit-row-card");
+
+                    VBox info = new VBox();
+                    info.setSpacing(6);
+                    Label title = new Label(c.getCourseCode() + " — " + c.getCourseTitle());
+                    title.setFont(Fonts.loadMontserratRegular(18));
+                    title.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
+                    Label subtitle = new Label("Sec " + c.getSection() + "    " + (c.getTimes() == null ? "" : c.getTimes()));
+                    subtitle.setFont(Fonts.loadMontserratRegular(14));
+                    subtitle.setStyle("-fx-text-fill: #2b4865;");
+                    Label location = new Label("Location: " + (c.getRooms() == null ? "TBA" : c.getRooms()));
+                    location.setFont(Fonts.loadMontserratRegular(13));
+                    location.setStyle("-fx-text-fill: #3b556b;");
+                    info.getChildren().addAll(title, subtitle, location);
+
+
+
+                    card.getChildren().add(info);
+                    setText(null);
+                    setGraphic(card);
+                }
+            }
+        });
+
+        // for action column
+        TableColumn<Course, Course> editActionCol = new TableColumn<>("Action");
+        editActionCol.setPrefWidth(160); // smaller
+        editActionCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
+        editActionCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, Course>() {
+            private final Button btn = new Button("EDIT");
+            {
+                btn.setStyle("-fx-background-color: linear-gradient(#2ecc71, #27ae60); -fx-border-color: transparent; -fx-text-fill: white; -fx-background-radius: 8;");
+                btn.setPrefWidth(120);
+                btn.setPrefHeight(36);
+            }
+            @Override protected void updateItem(Course item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    btn.setFont(Fonts.loadMontserratRegular(16));
+                    setGraphic(btn);
+                }
+            }
+        });
+
+        editTable.getColumns().addAll(classColSmall, editActionCol);
+        editTable.setItems(FXCollections.observableArrayList());
+
+        // Placeholder for empty edit table
+        Label editPlaceholder = new Label("NO DATA AVAILABLE");
+        editPlaceholder.setFont(Fonts.loadComingSoon(30));
+        editPlaceholder.setStyle("-fx-text-fill: black;");
+        editPlaceholder.setAlignment(javafx.geometry.Pos.CENTER);
+        editPlaceholder.prefWidthProperty().bind(editTable.widthProperty());
+        editTable.setPlaceholder(editPlaceholder);
+
+        // Add botoom padding to avoid abrtupt end of 
+        Pane bottomSpacer = new Pane();
+        bottomSpacer.layoutXProperty().bind(searchArea.layoutXProperty());
+        bottomSpacer.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            editTable.getLayoutY() + editTable.getPrefHeight() + 12,
+            editTable.layoutYProperty(), editTable.prefHeightProperty()));
+        bottomSpacer.setPrefWidth(1);
+        bottomSpacer.setPrefHeight(BOTTOM_PADDING); // NOTE TO SELF: ADJUST THIS IF EVER
+
         lblSearchCode.layoutXProperty().bind(searchArea.layoutXProperty().add(0));
         lblSearchCode.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
-            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 8,
+            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 24,
             manageLabel.layoutYProperty()));
 
         lblSearchSection.layoutXProperty().bind(searchArea.layoutXProperty().add(searchBoxWidth + searchGap));
         lblSearchSection.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
-            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 8,
+            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 24,
             manageLabel.layoutYProperty()));
 
-        content.getChildren().addAll(calendarLabel, calendarPane, manageLabel, lblSearchCode, lblSearchSection, searchArea, classTable);
+        content.getChildren().addAll(calendarLabel, calendarPane, manageLabel, lblSearchCode, lblSearchSection, searchArea, classTable, paginationPane, editLabel, editTable, bottomSpacer);
         // 
         try {
             profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
@@ -1025,6 +1428,76 @@ public class Dashboard {
         }
 
         return true;
+    }
+    
+    // di ko natest to
+    private String validateCourseForUser(Course selectedCourse, User user) {
+        if (selectedCourse == null || user == null) return "Invalid selection";
+
+        for (Course c : user.getCourses()) {
+            if (c.getCourseCode().equals(selectedCourse.getCourseCode())
+                    && c.getSection().equals(selectedCourse.getSection())) {
+                return "Duplicate course/section";
+            }
+        }
+
+        for (Course c : user.getCourses()) {
+            if (c.getTimes().equals(selectedCourse.getTimes())
+                    && c.getDays().equals(selectedCourse.getDays())) {
+                return "Exact same time & days as " + c.getCourseCode() + " " + c.getSection();
+            }
+        }
+
+        double[] newRange = parseTimeRangeDecimal(selectedCourse.getTimes());
+        double newStart = newRange[0];
+        double newEnd = newRange[1];
+        Set<String> newDays = parseDays(selectedCourse.getDays());
+
+        if (newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return null; // no schedule info, allow
+
+        for (Course c : user.getCourses()) {
+            Set<String> existDays = parseDays(c.getDays());
+            if (!daysOverlap(newDays, existDays)) continue;
+
+            double[] existRange = parseTimeRangeDecimal(c.getTimes());
+            double existStart = existRange[0];
+            double existEnd = existRange[1];
+
+            if (newStart < existEnd && newEnd > existStart) {
+                return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
+            }
+        }
+
+        return null;
+    }
+
+    // method for success message
+    private void showToast(Pane parent, String message, int durationMs) {
+        if (parent == null || message == null) return;
+        Label toast = new Label(message);
+        boolean success = message.toLowerCase().contains("added");
+        if (success) toast.getStyleClass().add("toast-success"); else toast.getStyleClass().add("toast-default");
+        toast.setFont(Fonts.loadMontserratRegular(success ? 18 : 16));
+        toast.setOpacity(0);
+        parent.getChildren().add(toast);
+        // place on top
+        toast.layoutXProperty().bind(parent.widthProperty().subtract(toast.widthProperty()).divide(2));
+        toast.setLayoutY(48);
+
+        javafx.animation.FadeTransition fin = new javafx.animation.FadeTransition(Duration.millis(220), toast);
+        fin.setFromValue(0.0);
+        fin.setToValue(1.0);
+        fin.play();
+
+        javafx.animation.PauseTransition wait = new javafx.animation.PauseTransition(Duration.millis(durationMs));
+        wait.setOnFinished(ev -> {
+            javafx.animation.FadeTransition fout = new javafx.animation.FadeTransition(Duration.millis(360), toast);
+            fout.setFromValue(1.0);
+            fout.setToValue(0.0);
+            fout.setOnFinished(ev2 -> { parent.getChildren().remove(toast); });
+            fout.play();
+        });
+        wait.play();
     }
     
     public Set<String> parseDays(String raw) {

@@ -267,3 +267,119 @@
     -fx-background-color: linear-gradient(#fff59d, #ffeb3b);
 }
 
+/* Pair card (lecture + lab) styles used in Dashboard */
+.pair-card-container {
+    -fx-background-color: linear-gradient(#f8fdff, #eef9ff);
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 12, 0.5, 0, 4);
+}
+.pair-card-header {
+    -fx-background-color: linear-gradient(#439fd0, #318fb8);
+    -fx-padding: 8 12;
+    -fx-background-radius: 8 8 0 0;
+    -fx-alignment: center-left;
+}
+
+/* Code column font in add-class table */
+.code-cell-font {
+    font-family: "Montserrat";
+    -fx-font-family: "Montserrat";
+    font-size: 20px;
+    -fx-font-size: 20px;
+    color: black;
+    -fx-text-fill: black;
+}
+
+/* Pagination controls */
+.pagination-pane { -fx-background-color: transparent; }
+.pagination-hbox { -fx-alignment: center; -fx-spacing: 12; }
+.pagination-btn {
+    background: linear-gradient(#e6f6ff, #d0f0ff);
+    -fx-background-color: linear-gradient(#e6f6ff, #d0f0ff);
+    border-radius: 8px;
+    -fx-background-radius: 8;
+    /* JavaFX does not support the standard 'border' shorthand; use -fx-border-* instead */
+    -fx-border-color: rgba(11,37,69,0.06);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    min-width: 48px; -fx-pref-width: 48px;
+    min-height: 48px; -fx-pref-height: 48px;
+    font-family: "Montserrat"; -fx-font-family: "Montserrat";
+    font-size: 16px; -fx-font-size: 16px;
+    color: #0b2545; -fx-text-fill: #0b2545;
+    cursor: pointer; -fx-cursor: hand;
+    /* use JavaFX drop shadow effect */
+    -fx-effect: dropshadow(gaussian, rgba(11,37,69,0.04), 6, 0.5, 0, 2);
+}
+.pagination-btn:hover { -fx-background-color: linear-gradient(#ffffff, #e6f9ff); }
+.pagination-btn:disabled { opacity: 0.5; -fx-opacity: 0.5; cursor: default; -fx-cursor: default; }
+.pagination-label {
+    font-family: "Montserrat"; -fx-font-family: "Montserrat";
+    font-size: 16px; -fx-font-size: 16px;
+    color: #0b2545; -fx-text-fill: #0b2545;
+    padding: 0 6 0 6; -fx-padding: 0 6 0 6;
+}
+
+/* Toast notifications */
+.toast-default {
+    background-color: rgba(0,0,0,0.85);
+    -fx-background-color: rgba(0,0,0,0.85);
+    color: white; -fx-text-fill: white;
+    padding: 12px 20px 12px 20px; -fx-padding: 12 20 12 20;
+    border-radius: 10px; -fx-background-radius: 10;
+    font-family: "Montserrat"; -fx-font-family: "Montserrat";
+    font-size: 16px; -fx-font-size: 16px;
+}
+.toast-success {
+    background: linear-gradient(#34d399, #10b981);
+    -fx-background-color: linear-gradient(#34d399, #10b981);
+    color: white; -fx-text-fill: white;
+    padding: 14px 22px 14px 22px; -fx-padding: 14 22 14 22;
+    border-radius: 12px; -fx-background-radius: 12;
+    font-family: "Montserrat"; -fx-font-family: "Montserrat";
+    font-size: 18px; -fx-font-size: 18px;
+    font-weight: bold; -fx-font-weight: bold;
+    /* use JavaFX drop shadow effect */
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.18), 10, 0.5, 0, 4);
+}
+.pair-card-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.pair-card-body {
+    -fx-background-color: white;
+    -fx-border-color: rgba(49,143,184,0.2);
+    -fx-border-radius: 0 0 8 8;
+    -fx-padding: 10;
+    -fx-font-size: 14px;
+}
+.units-badge {
+    -fx-background-color: rgba(255,255,255,0.06);
+    -fx-text-fill: white;
+    -fx-padding: 6 10;
+    -fx-background-radius: 16;
+    -fx-font-weight: bold;
+}
+
+/* Add button green style (no border) */
+.add-btn-green {
+    -fx-background-color: linear-gradient(#34d399, #10b981); /* soft green */
+    -fx-text-fill: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.16), 8, 0.5, 0, 3);
+}
+.add-btn-green:hover { -fx-background-color: linear-gradient(#6ee7b7, #34d399); }
+.add-btn-green:disabled { -fx-opacity: 0.6; }
+
+/* Edit table nicer row card */
+.edit-row-card {
+    -fx-background-color: linear-gradient(#ffffff, #f3fbff);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.5, 0, 3);
+}
+.edit-card-title { -fx-text-fill: #0b2545; -fx-font-weight: bold; }
+.edit-card-sub { -fx-text-fill: #3b556b; }
+
