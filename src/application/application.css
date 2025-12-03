@@ -204,31 +204,47 @@
     -fx-background-color: transparent;
 }
 .calendar-timecol {
-    -fx-fill: #1565C0; /* blue */
+    -fx-fill: linear-gradient(#439fd0, #318fb8);
 }
 .calendar-header {
-    -fx-fill: #FFD54F; /* yellow */
-    -fx-stroke: #1565C0;
+    -fx-fill: linear-gradient(#FFD54F, #ffb91a);
+    -fx-stroke: #318fb8;
 }
 .calendar-grid-line {
-    -fx-fill: #1565C0; 
+    -fx-fill: #318fb8; 
 }
 .calendar-day-label {
-    -fx-text-fill: #1565C0;
-    -fx-font-size: 15px;
+    -fx-text-fill: #000000;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
+    -fx-font-family: "Sensa Wild", "SensaWild", Montserrat, sans-serif;
 }
 .calendar-time-label {
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
+    -fx-text-fill: #000000;
+    -fx-font-size: 15px;
+    -fx-font-family: "Sensa Wild", "SensaWild", Montserrat, sans-serif;
 }
 .calendar-block {
-    -fx-fill: #1976D2; /* block fill */
-    -fx-stroke: #FFD54F; /* border */
+    -fx-fill: linear-gradient(#439fd0, #318fb8); /* block fill */
+    -fx-stroke: #ffb91a; /* border */
 }
 .calendar-block-label {
-    -fx-text-fill: #FFFDE7;
+    -fx-text-fill: #000000;
     -fx-font-size: 14px;
+}
+
+/* Table header styling to make column headers bigger and black */
+.table-view .column-header .label {
+    -fx-font-size: 22px;
+    -fx-text-fill: #000000;
+    -fx-font-weight: bold;
+    -fx-font-family: "Montserrat", sans-serif;
+}
+
+/* Table cell default text style */
+.table-view .table-cell {
+    -fx-font-size: 20px;
+    -fx-text-fill: #000000;
 }
 
 /* Profile image styling */

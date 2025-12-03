@@ -5,15 +5,22 @@ import application.Fonts;
 import courses.Course;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.paint.CycleMethod;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
+import javafx.animation.ScaleTransition;
+import javafx.util.Duration;
+import javafx.scene.Cursor;
 import javafx.scene.effect.BlurType;
 
 import java.util.Map;
@@ -64,7 +71,8 @@ public class Calendar {
     private void buildGrid() {
         // Draw the  time column on the left
         Rectangle timeCol = new Rectangle(0, 0, timeColWidth, height);
-        timeCol.setFill(Color.web("#1565C0"));
+        timeCol.setFill(new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.web("#439fd0")), new Stop(1, Color.web("#318fb8"))));
         root.getChildren().add(timeCol);
 
         // Add day header rectangles and labels
@@ -72,19 +80,58 @@ public class Calendar {
         for (int d = 0; d < dayCount; d++) {
             double x = timeColWidth + d * cellWidth;
 
-            Rectangle r = new Rectangle(x, 0, cellWidth, headerHeight);
-            r.setFill(Color.web("#FFD54F"));
-            r.setStroke(Color.web("#1565C0"));
+                Rectangle r = new Rectangle(x, 0, cellWidth, headerHeight);
+                r.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
+                    new Stop(0, Color.web("#FFD54F")), new Stop(1, Color.web("#ffb91a"))));
+                r.setStroke(Color.web("#318fb8"));
             r.setArcWidth(8);
             r.setArcHeight(8);
             root.getChildren().add(r);
 
             Label dayLabel = new Label(dayNames[d]);
-            dayLabel.setTextFill(Color.web("#1565C0"));
-            dayLabel.setFont(Fonts.loadMontserratRegular(16));
+            dayLabel.setTextFill(Color.web("#000000"));
+            javafx.scene.text.Font dayFont = Fonts.loadSensaWild(22);
+            dayLabel.setFont(dayFont);
+            String dayFamily = dayFont != null ? dayFont.getFamily() : "Sensa Wild";
+            dayLabel.setStyle("-fx-text-fill: #000000; -fx-font-size: 22px; -fx-font-weight: bold; -fx-font-family: '" + dayFamily + "';");
             dayLabel.setLayoutX(x + 12);
             dayLabel.setLayoutY(10);
             root.getChildren().add(dayLabel);
+        }
+
+        // shadow for table
+        double tableX = timeColWidth;
+        double tableWidth = cellWidth * dayCount;
+        double tableHeight = height;
+        Rectangle tableBg = new Rectangle(tableX, 0, tableWidth, tableHeight);
+        tableBg.setFill(Color.TRANSPARENT);
+        tableBg.setStroke(Color.TRANSPARENT);
+        DropShadow tableDrop = new DropShadow();
+        tableDrop.setBlurType(BlurType.GAUSSIAN);
+        tableDrop.setRadius(18);
+        tableDrop.setOffsetY(4);
+        tableDrop.setColor(Color.color(0,0,0,0.28));
+        tableBg.setEffect(tableDrop);
+        root.getChildren().add(0, tableBg);
+
+        // dotted lines of table
+        double yStart = headerHeight;
+        for (int rr = 0; rr <= rows; rr++) {
+            double y = headerHeight + rr * rowHeight;
+            Line h = new Line(timeColWidth, y, timeColWidth + cellWidth * dayCount, y);
+            h.setStroke(Color.web("#318fb8"));
+            h.setStrokeWidth(1.0);
+            h.getStrokeDashArray().addAll(4.0, 6.0);
+            root.getChildren().add(h);
+        }
+
+        for (int c = 0; c <= dayCount; c++) {
+            double x = timeColWidth + c * cellWidth;
+            Line v = new Line(x, yStart, x, height);
+            v.setStroke(Color.web("#318fb8"));
+            v.setStrokeWidth(1.0);
+            v.getStrokeDashArray().addAll(4.0, 6.0);
+            root.getChildren().add(v);
         }
 
         // Draw time labels for each hour row
@@ -93,10 +140,13 @@ public class Calendar {
             String labelText = hourStart + "-" + (hourStart + 1);
 
             Label tlabel = new Label(labelText);
-            tlabel.setTextFill(Color.WHITE);
-            tlabel.setFont(Fonts.loadMontserratRegular(13));
+            tlabel.setTextFill(Color.web("#FFFFFF"));
+            javafx.scene.text.Font timeFont = Fonts.loadSensaWild(26);
+            tlabel.setFont(timeFont);
+            String timeFamily = timeFont != null ? timeFont.getFamily() : "Sensa Wild";
+            tlabel.setStyle("-fx-text-fill: #FFFFFF; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: '" + timeFamily + "';");
             tlabel.setLayoutX(8);
-            tlabel.setLayoutY(headerHeight + r * rowHeight + (rowHeight / 2.0) - 9);
+            tlabel.setLayoutY(headerHeight + r * rowHeight + (rowHeight / 2.0) - 12);
             root.getChildren().add(tlabel);
         }
     }
@@ -164,8 +214,9 @@ public class Calendar {
             block.setPrefWidth(blockWidth);
             block.setPrefHeight(blockHeight);
 
-            Rectangle baseRect = new Rectangle(blockWidth, Math.max(24, blockHeight));
-            baseRect.setFill(Color.web("#1976D2"));
+                Rectangle baseRect = new Rectangle(blockWidth, Math.max(24, blockHeight));
+                baseRect.setFill(new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                    new Stop(0, Color.web("#439fd0")), new Stop(1, Color.web("#318fb8"))));
             baseRect.setArcWidth(12);
             baseRect.setArcHeight(12);
 
@@ -199,8 +250,9 @@ public class Calendar {
 
                         
                         Shape cut = Shape.subtract(baseRect, tri); // subtract the rectangle to the right traignel
-                        cut.setFill(Color.web("#1976D2"));
-                        cut.setStroke(Color.web("#FFD54F"));
+                        cut.setFill(new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                            new Stop(0, Color.web("#439fd0")), new Stop(1, Color.web("#318fb8"))));
+                        cut.setStroke(Color.web("#ffb91a"));
                         cut.setStrokeWidth(2);
                         cut.setEffect(drop);
                         bgNode = cut;
@@ -219,8 +271,9 @@ public class Calendar {
                         );
 
                         Shape cutSmall = Shape.subtract(baseRect, triSmall);
-                        cutSmall.setFill(Color.web("#1976D2"));
-                        cutSmall.setStroke(Color.web("#FFD54F"));
+                        cutSmall.setFill(new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                            new Stop(0, Color.web("#439fd0")), new Stop(1, Color.web("#318fb8"))));
+                        cutSmall.setStroke(Color.web("#ffb91a"));
                         cutSmall.setStrokeWidth(2);
                         cutSmall.setEffect(drop);
                         bgNode = cutSmall;
@@ -235,18 +288,50 @@ public class Calendar {
                 selectedCourse.getCourseCode() + " " + selectedCourse.getSection() +
                 "\n" + selectedCourse.getRooms()
             );
-            info.setTextFill(Color.web("#FFFDE7"));
-            info.setFont(Fonts.loadMontserratRegular(14));
+            info.setTextFill(Color.web("#FFFFFF"));
+            javafx.scene.text.Font infoFont = Fonts.loadMontserratRegular(16);
+            info.setFont(infoFont);
+            String infoFamily = infoFont != null ? infoFont.getFamily() : "Montserrat";
+            info.getStyleClass().add("calendar-block-label");
+            info.setStyle("-fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-font-family: '" + infoFamily + "';");
             info.setWrapText(true);
             info.setMaxWidth(cellWidth - 28);
 
             // for border handling of the 1hr and 30 minute block
             if (bgNode == baseRect) {
-                baseRect.setStroke(Color.web("#FFD54F"));
+                baseRect.setStroke(Color.web("#ffb91a"));
                 baseRect.setStrokeWidth(2);
             }
 
             block.getChildren().addAll(bgNode, info);
+            // sched blocks to pop out when hivered
+            ScaleTransition stEnter = new ScaleTransition(Duration.millis(120), block);
+            stEnter.setToX(1.06);
+            stEnter.setToY(1.06);
+            ScaleTransition stExit = new ScaleTransition(Duration.millis(120), block);
+            stExit.setToX(1.0);
+            stExit.setToY(1.0);
+
+            // add shadow make pretty
+            DropShadow hoverShadow = new DropShadow();
+            hoverShadow.setBlurType(BlurType.GAUSSIAN);
+            hoverShadow.setRadius(12);
+            hoverShadow.setSpread(0.16);
+            hoverShadow.setOffsetY(4);
+            hoverShadow.setColor(Color.color(0,0,0,0.36));
+
+            block.setOnMouseEntered(ev -> {
+                stExit.stop();
+                stEnter.playFromStart();
+                block.setEffect(hoverShadow);
+                block.setCursor(Cursor.HAND);
+                block.toFront();
+            });
+            block.setOnMouseExited(ev -> {
+                stEnter.stop();
+                stExit.playFromStart();
+                block.setEffect(null);
+            });
             block.setLayoutX(x + 6);
             block.setLayoutY(y + 6);
 
@@ -268,9 +353,9 @@ public class Calendar {
         for (Node n : nodes) root.getChildren().remove(n);
         
         calendarCourses.removeIf(cc ->
-        cc.getCourseCode().equals(c.getCourseCode()) &&
-        cc.getSection().equals(c.getSection())
-    );
+            cc.getCourseCode().equals(c.getCourseCode()) &&
+            cc.getSection().equals(c.getSection())
+        );
     }
 
     // Attempts to extract a valid integer hour from a time string

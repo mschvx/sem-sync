@@ -40,7 +40,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
-import javafx.scene.control.ListView;
+import javafx.beans.binding.Bindings;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TextField;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
 import javafx.animation.TranslateTransition;
@@ -124,27 +128,25 @@ public class Dashboard {
         btnAbout.getStyleClass().add("sidebar-pill");
         btnAbout.setOnAction(ev -> new About().showAbout(primaryStage));
 
-        Button btnTutorial = new Button("PROFILE");
-        btnTutorial.setLayoutX(buttonXPos);
-        btnTutorial.setLayoutY(200);
-        btnTutorial.setPrefWidth(sidebarWidth - 80);
-        btnTutorial.setPrefHeight(48);
-        btnTutorial.setFont(Fonts.loadSensaWild(22));
-        btnTutorial.getStyleClass().add("btn-register");
-        btnTutorial.getStyleClass().add("sidebar-pill");
-        // actual action attached after `content` is created so it can call Profile.showInContent
-        btnTutorial.setOnAction(ev -> { /* attached after content creation */ });
+        Button btnProfile = new Button("PROFILE");
+        btnProfile.setLayoutX(buttonXPos);
+        btnProfile.setLayoutY(200);
+        btnProfile.setPrefWidth(sidebarWidth - 80);
+        btnProfile.setPrefHeight(48);
+        btnProfile.setFont(Fonts.loadSensaWild(22));
+        btnProfile.getStyleClass().add("btn-register");
+        btnProfile.getStyleClass().add("sidebar-pill");
+        btnProfile.setOnAction(ev -> {  });
 
-        Button btnCatalogue = new Button("DASHBOARD");
-        btnCatalogue.setLayoutX(buttonXPos);
-        btnCatalogue.setLayoutY(260);
-        btnCatalogue.setPrefWidth(sidebarWidth - 80);
-        btnCatalogue.setPrefHeight(48);
-        btnCatalogue.setFont(Fonts.loadSensaWild(22));
-        btnCatalogue.getStyleClass().add("btn-create");
-        btnCatalogue.getStyleClass().add("sidebar-pill");
-        // Action will be attached later once `content` is initialized.
-        btnCatalogue.setOnAction(ev -> { /* attached after content creation */ });
+        Button btnDashboard = new Button("DASHBOARD");
+        btnDashboard.setLayoutX(buttonXPos);
+        btnDashboard.setLayoutY(260);
+        btnDashboard.setPrefWidth(sidebarWidth - 80);
+        btnDashboard.setPrefHeight(48);
+        btnDashboard.setFont(Fonts.loadSensaWild(22));
+        btnDashboard.getStyleClass().add("btn-create");
+        btnDashboard.getStyleClass().add("sidebar-pill");
+        btnDashboard.setOnAction(ev -> {  });
 
         // eye image
         File eyelidFile = new File("Elements/eyelid.png");
@@ -162,8 +164,9 @@ public class Dashboard {
         eyeView.setFitWidth(sidebarWidth - 80);
         eyeView.setLayoutX(buttonXPos);
         eyeView.setLayoutY(360);
+        
 
-        // Anger overlay image 
+        // Anger overlay image testtest
         final Image angerImg = new Image(new File("Elements/yourenotsupposedtobehere/ANGER.png").toURI().toString());
         ImageView angerView = new ImageView(angerImg);
         angerView.setPreserveRatio(true);
@@ -261,7 +264,7 @@ public class Dashboard {
         });
 
         Pane sidebarContent = new Pane();
-        sidebarContent.getChildren().addAll(sideTitle, btnAbout, btnTutorial, btnCatalogue, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
+        sidebarContent.getChildren().addAll(sideTitle, btnAbout, btnProfile, btnDashboard, eyeView, eyelidView, angerView, btnCredits, btnReferences, btnLogout);
 
         javafx.scene.control.ScrollPane sidebarScroll = new javafx.scene.control.ScrollPane(sidebarContent);
         sidebarScroll.setLayoutX(0);
@@ -317,9 +320,9 @@ public class Dashboard {
             } catch (Exception ignored) {}
         });
 
-        // a
+        // (dashboard state to profile state)
         try {
-            btnCatalogue.setOnAction(ev -> {
+                btnDashboard.setOnAction(ev -> {
                 try {
                     Object openFlag = content.getProperties().get("profileOpen");
                     boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
@@ -331,11 +334,15 @@ public class Dashboard {
             });
         } catch (Exception ignored) {}
 
-        // attach Profile button action (previously Tutorial) now that content exists
+        // profile state (switch to dashboard staet)
         try {
-            btnTutorial.setOnAction(ev -> {
+                btnProfile.setOnAction(ev -> {
                 try {
-                    new Profile().showInContent(content, scene, user, contentScroll);
+                    Object openFlag = content.getProperties().get("profileOpen");
+                    boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
+                    if (!open) {
+                        new Profile().showInContent(content, scene, user, contentScroll);
+                    }
                 } catch (Exception ex) {
                 }
             });
@@ -347,7 +354,7 @@ public class Dashboard {
         final ImageView profileView = new ImageView(profile1);
         profileView.setPreserveRatio(true);
         profileView.setFitWidth(200);
-        profileView.layoutXProperty().bind(content.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
+        profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
         profileView.setLayoutY(10);
         profileView.getStyleClass().add("profile-image");
 
@@ -361,12 +368,15 @@ public class Dashboard {
         }));
         profileTimeline.setCycleCount(Timeline.INDEFINITE);
 
+        profileTimeline.stop();
+
         profileView.setOnMouseEntered(ev -> profileTimeline.play());
         profileView.setOnMouseExited(ev -> {
-            profileTimeline.stop();
-            profileView.setImage(profile1);
+            try {
+                profileTimeline.stop();
+                profileView.setImage(profile1);
+            } catch (Exception ignored) {}
         });
-
         profileView.setOnMouseClicked(ev -> {
             try {
                 new Profile().showInContent(content, scene, user, contentScroll);
@@ -375,6 +385,7 @@ public class Dashboard {
                 ex.printStackTrace();
             }
         });
+        
 
         // Make the eye follow the mouse cursor by rotating the eye image around its center
         final javafx.scene.transform.Rotate eyeRotate = new javafx.scene.transform.Rotate(0, 0, 0);
@@ -460,71 +471,75 @@ public class Dashboard {
         Label greetLabel = new Label(greeting);
         Font greetFont = Font.loadFont(Fonts.SENSA_SERIF, 80);
         greetLabel.setFont(greetFont);
-        greetLabel.setLayoutX(220);
+        greetLabel.setLayoutX(160);
         greetLabel.setLayoutY(60);
         greetLabel.setStyle("-fx-text-fill: black;");
         content.getChildren().add(greetLabel);
 
-        // -- Dropdown --
-        ComboBox<Course> dropdown = new ComboBox<>();
-        dropdown.setPromptText("Select course:");
-        dropdown.setLayoutX(220);
-        dropdown.setLayoutY(180);
-        dropdown.setPrefWidth(400);
-        dropdown.setStyle("-fx-font-size: 18px;"); 
-        
-        dropdown.setCellFactory(listView -> new ListCell<Course>() {
-            protected void updateItem(Course item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) setText(null);
-                else setText(item.getCourseCode() + " - " + item.getCourseTitle() + " - Units: " + item.getUnits() + " - Section: " + item.getSection() + " - " + item.getTimes() + " - " + item.getDays());
-
-            }
-        });
-
-        dropdown.setButtonCell(new ListCell<Course>() {
-            protected void updateItem(Course item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) setText(null);
-                else setText(item.getCourseCode() + " - " + item.getCourseTitle() + " - Units: " + item.getUnits() + " - Section: " + item.getSection() + " - " + item.getTimes() + " - " + item.getDays());
-            }
-        });
-        
-        // -- Buttons --
-        Button btnAdd = new Button("Add");
-        btnAdd.setLayoutX(220);
-        btnAdd.setLayoutY(260);
-        btnAdd.setPrefWidth(120);
-        btnAdd.setFont(Fonts.loadSensaWild(24));
-
-        Button btnDelete = new Button("Delete");
-        btnDelete.setLayoutX(360);
-        btnDelete.setLayoutY(260);
-        btnDelete.setPrefWidth(120);
-        btnDelete.setFont(Fonts.loadSensaWild(24));
 
         // calendar
-        double calX = 220;
-        double calY = 330;
+        double calX = 160;
+        double calY = 160;
         double calWidth = 1200;
         double calHeight = 560; 
+
+        // Header for calendar
+        double calHeaderHeight = 72;
+        double calHeaderMargin = 12;
+        double calendarTopY = calY + calHeaderHeight + calHeaderMargin;
+
+        Label calendarLabel = new Label("Calendar");
+        calendarLabel.setFont(Fonts.loadMontserratRegular(28)); 
+        calendarLabel.setWrapText(true);
+        calendarLabel.setLayoutX(calX);
+        calendarLabel.setLayoutY(calY);
+        calendarLabel.setPrefWidth(calWidth);
+        calendarLabel.setPrefHeight(calHeaderHeight);
+        calendarLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
 
         Calendar calendar = new Calendar(calWidth, calHeight); // call the calendar from the calendar package and make a new calendar
         Pane calendarPane = calendar.getView();
         calendarPane.setLayoutX(calX);
-        calendarPane.setLayoutY(calY);
+        calendarPane.setLayoutY(calendarTopY);
 
+        // header manage Classes section 
+        Label manageLabel = new Label("Manage Classes");
+        manageLabel.setFont(Fonts.loadMontserratRegular(28));
+        manageLabel.setLayoutX(160);
+        manageLabel.setLayoutY(calendarTopY + calHeight + 16);
+        manageLabel.setPrefWidth(calWidth);
+        manageLabel.setPrefHeight(48);
+        manageLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
+
+        // Search fields (placeholders - not wired yet)
+        Label lblSearchCode = new Label("Search by Course code");
+        lblSearchCode.setLayoutX(160);
+        lblSearchCode.setLayoutY(calendarTopY + calHeight + 100);
+        TextField txtSearchCode = new TextField();
+        txtSearchCode.setLayoutX(360);
+        txtSearchCode.setLayoutY(1);
+        txtSearchCode.setPrefWidth(220);
+
+        Label lblSearchSection = new Label("Search by Section");
+        lblSearchSection.setLayoutX(160);
+        lblSearchSection.setLayoutY(calendarTopY + calHeight + 100);
+        TextField txtSearchSection = new TextField();
+        txtSearchSection.setLayoutX(360);
+        txtSearchSection.setLayoutY(1);
+        txtSearchSection.setPrefWidth(220);
+
+        /*
         // -- List of items added by user --
         Label itemsLabel = new Label("Your Items");
         itemsLabel.setFont(Fonts.loadMontserratRegular(28));
-        itemsLabel.setLayoutX(220);
-        itemsLabel.setLayoutY(calY + calHeight + 24);
+        itemsLabel.setLayoutX(160);
+        itemsLabel.setLayoutY(calendarTopY + calHeight + 180);
         itemsLabel.setStyle("-fx-text-fill: black;");
 
         ObservableList<Course> listItems = FXCollections.observableArrayList();
         ListView<Course> listView = new ListView<>(listItems);
-        listView.setLayoutX(220);
-        listView.setLayoutY(calY + calHeight + 90);
+        listView.setLayoutX(160);
+        listView.setLayoutY(calendarTopY + calHeight + 220);
         listView.setPrefWidth(1200);
         listView.setPrefHeight(260);   
         
@@ -551,6 +566,11 @@ public class Dashboard {
         ObservableList<Lecture> lecSections = FXCollections.<Lecture>observableArrayList(); // Added if ever needed
 
         // Build a list of allowed curriculum course codes (used as reference)
+        */
+
+        ObservableList<Course> list = FXCollections.<Course>observableArrayList();
+        ObservableList<Laboratory> labSections = FXCollections.<Laboratory>observableArrayList(); // Added if ever needed
+        ObservableList<Lecture> lecSections = FXCollections.<Lecture>observableArrayList(); // Added if ever needed
         List<String> allowedCourseCodes = new ArrayList<>();
         if (program != null && program.getCurriculumCSV() != null) {
             try {
@@ -621,137 +641,19 @@ public class Dashboard {
             System.out.print("Error reading course_offerings.csv");
         }
         
-        dropdown.getItems().addAll(list);             
-        
-        btnAdd.setOnMouseClicked(e -> {
-            Course selectedCourse = dropdown.getValue();
-
-            if (selectedCourse == null) {
-                return;
-            }
-
-            boolean exists = dropdown.getItems().stream()
-                .anyMatch(c -> c.getCourseCode().equals(selectedCourse.getCourseCode())
-                            && c.getSection().equals(selectedCourse.getSection()));
-
-            if (!exists) {
-                return;
-            }
-
-            if (selectedCourse instanceof Lecture) {
-                Course copyselectedCourse = (Course) selectedCourse;
-                boolean ok = courseChecker(copyselectedCourse, user);
-         
-                if (!ok) return;
-
-                listItems.add(selectedCourse);
-                user.addCourse(selectedCourse);
-                calendar.addCourse(selectedCourse, listItems);
-
-            } else if (selectedCourse instanceof Laboratory) {
-                Laboratory lab = (Laboratory) selectedCourse;
-                Course copyselectedCourse = (Course) selectedCourse;
-
-                Lecture parent = lab.getlectureSection();
-                Course copyparent = (Course) parent;
-
-                boolean labInListItems = listItems.stream()
-                    .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
-                boolean labInUser = user.getCourses().stream()
-                    .anyMatch(c -> c.getCourseCode().equals(lab.getCourseCode()) && c.getSection().equals(lab.getSection()));
-
-                boolean ok = courseChecker(copyselectedCourse, user);
-              
-                if (!ok) return;
-
-                if (!labInListItems) listItems.add(lab);
-                if (!labInUser) user.addCourse(lab);
-                calendar.addCourse(lab, listItems);
-
-                boolean labAdded = true;
-
-                if (parent != null && labAdded) {
-                    boolean parentInListItems = listItems.stream()
-                        .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
-                    boolean parentInUser = user.getCourses().stream()
-                        .anyMatch(c -> c.getCourseCode().equals(parent.getCourseCode()) && c.getSection().equals(parent.getSection()));
-
-                    boolean okParent = courseChecker(copyparent, user);
-                    if (!okParent) return;
-
-                    if (!parentInListItems) listItems.add(parent);
-                    if (!parentInUser) user.addCourse(parent);
-                    calendar.addCourse(parent, listItems);
-                } else {
-                    return;
-                }
-
-            } else if (selectedCourse instanceof Course) {
-                Course copyselectedCourse = (Course) selectedCourse;
-                boolean ok = courseChecker(copyselectedCourse, user);
-                if (!ok) return;
-
-                listItems.add(selectedCourse);
-                user.addCourse(selectedCourse);
-                calendar.addCourse(selectedCourse, listItems);
-            }
-        });
-
-        
-        btnDelete.setOnMouseClicked( e-> {
-        	Course selected = listView.getSelectionModel().getSelectedItem();
-        	
-        	if(selected == null) {
-        		System.out.println("error"); //Placeholder error
-        		return;
-        	}
-        	
-        	if(selected instanceof Laboratory) {
-        		Laboratory selectedL = (Laboratory) selected;
-        		Lecture lec = selectedL.getlectureSection();
-        		
-        		listItems.remove(selectedL);
-        		listItems.remove(lec);
-        		user.getCourses().remove(selectedL);
-        		user.getCourses().remove(lec);
-        		
-        		calendar.removeCourse(selected);
-        		calendar.removeCourse(lec);    
-        		
-        		return;
-        		
-        	} else if(selected instanceof Lecture) {
-        		Lecture selectedLec = (Lecture) selected;
-        		
-        		for(Laboratory l: selectedLec.getLabSections()) {
-        		    boolean existsInUser = user.getCourses().stream().anyMatch(c ->
-        		                c.getCourseCode().equals(l.getCourseCode()) &&
-        		                c.getSection().equals(l.getSection())
-        		            );
-        		    
-        		    if(existsInUser) {
-        		    		listItems.remove(l);
-        		    		user.getCourses().remove(l);
-        		    		calendar.removeCourse(l);
-        		    }
-        		}
-        	}
-        	
-        	listItems.remove(selected);
-        	user.getCourses().remove(selected);
-        calendar.removeCourse(selected);    
-        });
+     
         
         // Add to pane
+        /*
         Pane bottomSpacer = new Pane();
-        bottomSpacer.setLayoutX(220);
+        bottomSpacer.setLayoutX(160);
         bottomSpacer.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 10);
         bottomSpacer.setPrefWidth(1);
         bottomSpacer.setPrefHeight(400);
 
         // catalogue button
         Button btnCatalogueMain = new Button("CATALOGUE");
-        btnCatalogueMain.setLayoutX(220);
+        btnCatalogueMain.setLayoutX(160);
         btnCatalogueMain.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 14);
         btnCatalogueMain.setPrefWidth(220);
         btnCatalogueMain.setPrefHeight(48);
@@ -762,8 +664,181 @@ public class Dashboard {
             System.out.println("WALA PAAAAAA <WOIJOIDJASOIDJ");
 
         });
+        */
 
-        content.getChildren().addAll(dropdown, btnAdd, btnDelete, calendarPane, itemsLabel, listView, btnCatalogueMain, bottomSpacer);
+        // Search areas
+        double searchBoxWidth = 600;
+        double searchBoxHeight = 96;
+        double searchGap = 16; // reduced gap so fields are closer together
+
+        Pane searchArea = new Pane();
+        searchArea.layoutYProperty().bind(lblSearchCode.layoutYProperty().add(lblSearchCode.heightProperty()).add(4));
+        searchArea.setPrefWidth(searchBoxWidth * 2 + searchGap);
+        searchArea.setPrefHeight(searchBoxHeight + 80);
+
+        // center the search horizontally 
+        searchArea.layoutXProperty().bind(Bindings.createDoubleBinding(() ->
+            (scene.getWidth() - searchArea.getPrefWidth()) / 2.0,
+            scene.widthProperty()));
+
+        lblSearchCode.setLayoutX(0);
+        lblSearchCode.setLayoutY(0);
+        lblSearchCode.setFont(Fonts.loadComingSoon(34));
+        lblSearchCode.setStyle("-fx-text-fill: black;");
+
+        lblSearchSection.setLayoutX(searchBoxWidth + searchGap);
+        lblSearchSection.setLayoutY(0);
+        lblSearchSection.setFont(Fonts.loadComingSoon(34));
+        lblSearchSection.setStyle("-fx-text-fill: black;");
+
+        Pane courseBox = new Pane();
+        courseBox.setLayoutX(0);
+        // reduce internal top offset so the input sits nearer the label
+        courseBox.setLayoutY(8);
+        courseBox.setPrefWidth(searchBoxWidth);
+        courseBox.setPrefHeight(searchBoxHeight);
+        courseBox.setStyle("-fx-background-color: linear-gradient(#FFD54F, #ffb91a); -fx-background-radius: 28; -fx-padding: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.5, 0, 2);");
+
+        txtSearchCode.setLayoutX(18);
+        txtSearchCode.setLayoutY(16);
+        txtSearchCode.setPrefWidth(searchBoxWidth - 36);
+        txtSearchCode.setPrefHeight(searchBoxHeight - 32);
+        txtSearchCode.setFont(Fonts.loadMontserratRegular(24));
+        txtSearchCode.setStyle("-fx-background-color: #ebebeb; -fx-border-color: black; -fx-border-radius: 15; -fx-background-radius: 15; -fx-text-fill: black; -fx-border-width: 4;");
+        courseBox.getChildren().add(txtSearchCode);
+
+        Pane sectionBox = new Pane();
+        sectionBox.setLayoutX(searchBoxWidth + searchGap);
+        sectionBox.setLayoutY(8);
+        sectionBox.setPrefWidth(searchBoxWidth);
+        sectionBox.setPrefHeight(searchBoxHeight);
+        sectionBox.setStyle("-fx-background-color: linear-gradient(#FFD54F, #ffb91a); -fx-background-radius: 28; -fx-padding: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.5, 0, 2);");
+
+        txtSearchSection.setLayoutX(18);
+        txtSearchSection.setLayoutY(16);
+        txtSearchSection.setPrefWidth(searchBoxWidth - 36);
+        txtSearchSection.setPrefHeight(searchBoxHeight - 32);
+        txtSearchSection.setFont(Fonts.loadMontserratRegular(24));
+        txtSearchSection.setStyle("-fx-background-color: #ebebeb; -fx-border-color: black; -fx-border-radius: 15; -fx-background-radius: 15; -fx-text-fill: black; -fx-border-width: 4;");
+        sectionBox.getChildren().add(txtSearchSection);
+
+        // Search and show all buttons
+        Button btnSearch = new Button("SEARCH");
+        btnSearch.setPrefWidth(420);
+        btnSearch.setPrefHeight(64);
+        btnSearch.setFont(Fonts.loadSensaWild(22));
+        btnSearch.getStyleClass().add("btn-create");
+        btnSearch.getStyleClass().add("sidebar-pill");
+
+        Button btnShowAll = new Button("SHOW ALL");
+        btnShowAll.setPrefWidth(420);
+        btnShowAll.setPrefHeight(64);
+        btnShowAll.setFont(Fonts.loadSensaWild(22));
+        btnShowAll.getStyleClass().add("btn-create");
+        btnShowAll.getStyleClass().add("sidebar-pill");
+
+        // center the buttons
+        btnSearch.layoutXProperty().bind(Bindings.createDoubleBinding(() ->
+            (searchArea.getPrefWidth() - (btnSearch.getPrefWidth() + 16 + btnShowAll.getPrefWidth())) / 2.0,
+            searchArea.widthProperty()));
+        btnSearch.layoutYProperty().set(courseBox.getLayoutY() + searchBoxHeight + 20);
+
+        btnShowAll.layoutXProperty().bind(Bindings.createDoubleBinding(() ->
+            btnSearch.getLayoutX() + btnSearch.getPrefWidth() + 16,
+            btnSearch.layoutXProperty()));
+        btnShowAll.layoutYProperty().bind(btnSearch.layoutYProperty());
+
+        btnShowAll.setOnAction(ev -> {
+            System.out.println("SHOW ALL pressed WALA PAAAAA PLACEHOLDER AAA");
+        });
+
+        searchArea.getChildren().addAll(courseBox, sectionBox, btnSearch, btnShowAll);
+
+        // Table below search area for results
+        TableView<Course> classTable = new TableView<>();
+        classTable.prefWidthProperty().bind(searchArea.prefWidthProperty());
+        classTable.setPrefHeight(220);
+        classTable.layoutXProperty().bind(searchArea.layoutXProperty());
+
+        classTable.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            searchArea.getLayoutY() + btnSearch.getLayoutY() + btnSearch.getPrefHeight() + 24,
+            searchArea.layoutYProperty(), btnSearch.layoutYProperty(), btnSearch.prefHeightProperty()));
+
+        // Columns
+        TableColumn<Course, String> codeCol = new TableColumn<>("Code");
+        codeCol.setPrefWidth(180);
+        codeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+            c.getValue() == null ? "" : c.getValue().getCourseCode()));
+        codeCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, String>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); } else {
+                    setText(item);
+                    setFont(Fonts.loadMontserratRegular(20));
+                    setStyle("-fx-text-fill: black;");
+                }
+            }
+        });
+
+        TableColumn<Course, String> detailsCol = new TableColumn<>("Class Details");
+        // Make details column responsive to table width
+        detailsCol.prefWidthProperty().bind(classTable.widthProperty().subtract(codeCol.prefWidthProperty()).subtract(160));
+        detailsCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
+            c.getValue() == null ? "" : (c.getValue().getCourseTitle() + " — Section: " + c.getValue().getSection())));
+        detailsCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, String>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); } else {
+                    setText(item);
+                    setFont(Fonts.loadMontserratRegular(20));
+                    setStyle("-fx-text-fill: black;");
+                }
+            }
+        });
+
+        TableColumn<Course, Course> actionCol = new TableColumn<>("Action");
+        actionCol.setPrefWidth(160);
+        actionCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
+        actionCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, Course>() {
+            private final Button btn = new Button("ADD");
+            {
+                btn.getStyleClass().add("btn-create");
+                btn.setPrefWidth(120);
+                btn.setPrefHeight(36);
+            }
+            @Override protected void updateItem(Course item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    btn.setFont(Fonts.loadMontserratRegular(16));
+                    setGraphic(btn);
+                }
+            }
+        });
+
+        classTable.getColumns().addAll(codeCol, detailsCol, actionCol);
+        classTable.setItems(FXCollections.observableArrayList());
+
+        // Placeholder for empty table 
+        Label placeholder = new Label("NO DATA AVAILABLE");
+        placeholder.setFont(Fonts.loadComingSoon(30));
+        placeholder.setStyle("-fx-text-fill: black;");
+        placeholder.setAlignment(javafx.geometry.Pos.CENTER);
+        placeholder.prefWidthProperty().bind(classTable.widthProperty());
+        classTable.setPlaceholder(placeholder);
+
+        lblSearchCode.layoutXProperty().bind(searchArea.layoutXProperty().add(0));
+        lblSearchCode.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 8,
+            manageLabel.layoutYProperty()));
+
+        lblSearchSection.layoutXProperty().bind(searchArea.layoutXProperty().add(searchBoxWidth + searchGap));
+        lblSearchSection.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 8,
+            manageLabel.layoutYProperty()));
+
+        content.getChildren().addAll(calendarLabel, calendarPane, manageLabel, lblSearchCode, lblSearchSection, searchArea, classTable);
         // 
         try {
             profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
@@ -863,6 +938,48 @@ public class Dashboard {
         return new int[]{start, end};
     }
 
+    // Parse a time string into decimals
+    private double parseTimeDecimal(String raw) {
+        if (raw == null) return 0.0;
+        raw = raw.trim();
+        if (raw.isEmpty()) return 0.0;
+
+        try {
+            String[] parts = raw.split(":");
+            int h = 0;
+            int m = 0;
+            if (parts.length > 0) {
+                String hs = parts[0].replaceAll("[^0-9]", "");
+                if (!hs.isEmpty()) h = Integer.parseInt(hs);
+            }
+            if (parts.length > 1) {
+                String ms = parts[1].replaceAll("[^0-9]", "");
+                if (!ms.isEmpty()) {
+                    if (ms.length() > 2) ms = ms.substring(0,2);
+                    m = Integer.parseInt(ms);
+                }
+            }
+            double dec = h + (m / 60.0);
+            if (dec < 7) dec += 12; 
+            return dec;
+        } catch (Exception ex) {
+            return 0.0;
+        }
+    }
+
+    private double[] parseTimeRangeDecimal(String raw) {
+        if (raw == null) return new double[]{0.0, 0.0};
+        String[] parts = raw.split("-");
+        if (parts.length < 2) {
+            double v = parseTimeDecimal(raw.trim());
+            return new double[]{v, v};
+        }
+        double start = parseTimeDecimal(parts[0].trim());
+        double end = parseTimeDecimal(parts[1].trim());
+        if (end <= start) end += 12;
+        return new double[]{start, end};
+    }
+
     private boolean courseChecker(Course selectedCourse, User user) {
         if (selectedCourse == null || user == null) return false;
 
@@ -870,7 +987,7 @@ public class Dashboard {
         for (Course c : user.getCourses()) {
             if (c.getCourseCode().equals(selectedCourse.getCourseCode())
                     && c.getSection().equals(selectedCourse.getSection())) {
-                System.out.println("error: duplicate course/section");
+                System.out.println("error: duplicate course/section -> " + selectedCourse.getCourseCode() + " " + selectedCourse.getSection());
                 return false;
             }
         }
@@ -879,14 +996,15 @@ public class Dashboard {
         for (Course c : user.getCourses()) {
             if (c.getTimes().equals(selectedCourse.getTimes())
                     && c.getDays().equals(selectedCourse.getDays())) {
-                System.out.println("error: exact same time & days");
+                System.out.println("error: exact same time & days -> selected=" + selectedCourse.getCourseCode() + " " + selectedCourse.getTimes() + " " + selectedCourse.getDays()
+                    + " existing=" + c.getCourseCode() + " " + c.getTimes() + " " + c.getDays());
                 return false;
             }
         }
 
-        int[] newRange = parseHourRange(selectedCourse.getTimes());
-        int newStart = newRange[0];
-        int newEnd = newRange[1];
+        double[] newRange = parseTimeRangeDecimal(selectedCourse.getTimes());
+        double newStart = newRange[0];
+        double newEnd = newRange[1];
         Set<String> newDays = parseDays(selectedCourse.getDays());
 
         if (newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return true;
@@ -895,12 +1013,13 @@ public class Dashboard {
             Set<String> existDays = parseDays(c.getDays());
             if (!daysOverlap(newDays, existDays)) continue;
 
-            int[] existRange = parseHourRange(c.getTimes());
-            int existStart = existRange[0];
-            int existEnd = existRange[1];
+            double[] existRange = parseTimeRangeDecimal(c.getTimes());
+            double existStart = existRange[0];
+            double existEnd = existRange[1];
 
             if (newStart < existEnd && newEnd > existStart) {
-                System.out.println("error: time overlap with " + c.getCourseCode() + " " + c.getTimes());
+                System.out.println("error: time overlap -> selected=" + selectedCourse.getCourseCode() + " " + selectedCourse.getTimes() + " " + selectedCourse.getDays()
+                    + " existing=" + c.getCourseCode() + " " + c.getTimes() + " " + c.getDays());
                 return false;
             }
         }
