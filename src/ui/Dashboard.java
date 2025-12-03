@@ -32,6 +32,7 @@ import users.User;
 import users.CurriculumLoader;
 import users.Curriculum;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -852,10 +853,12 @@ public class Dashboard {
                 if (item.getLecture() != null) {
                     Lecture lec = item.getLecture();
                     leftBody.setText(lec.getSection() + " - (" + lec.getTimes() + ")\nLocation: " + (lec.getRooms() == null ? "TBA" : lec.getRooms()));
+                    Label leftDays = createDaysBox(lec.getDays());
+                    leftCard.getChildren().addAll(leftHeaderBox, leftBody, leftDays);
                 } else {
                     leftBody.setText("-- No lecture --");
+                    leftCard.getChildren().addAll(leftHeaderBox, leftBody);
                 }
-                leftCard.getChildren().addAll(leftHeaderBox, leftBody);
 
                 // design for lab ui intable
                 VBox rightCard = new VBox();
@@ -881,10 +884,12 @@ public class Dashboard {
                 if (item.getLab() != null) {
                     Laboratory lab = item.getLab();
                     rightBody.setText(lab.getSection() + " - (" + lab.getTimes() + ")\nLocation: " + (lab.getRooms() == null ? "TBA" : lab.getRooms()));
+                    Label rightDays = createDaysBox(lab.getDays());
+                    rightCard.getChildren().addAll(rightHeaderBox, rightBody, rightDays);
                 } else {
                     rightBody.setText("-- No corresponding class --");
+                    rightCard.getChildren().addAll(rightHeaderBox, rightBody);
                 }
-                rightCard.getChildren().addAll(rightHeaderBox, rightBody);
 
                 HBox container = new HBox(12);
                 container.getChildren().addAll(leftCard, rightCard);
@@ -914,30 +919,38 @@ public class Dashboard {
                         try {
                             boolean addedAny = false;
                             String failReason = null;
-                            if (item.getLecture() != null) {
-                                Lecture lec = item.getLecture();
-                                String reason = validateCourseForUser(lec, user);
-                                if (reason == null) {
-                                    user.addCourse(lec);
-                                    calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
-                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
-                                    addedAny = true;
-                                } else {
-                                    failReason = "Lecture not added: " + reason;
-                                }
-                            }
-                            if (item.getLab() != null) {
-                                Laboratory lab = item.getLab();
-                                String reason = validateCourseForUser(lab, user);
-                                if (reason == null) {
+                            Lecture lec = item.getLecture();
+                            Laboratory lab = item.getLab();
+                            String lecReason = null;
+                            String labReason = null;
+                            if (lec != null) lecReason = validateCourseForUser(lec, user);
+                            if (lab != null) labReason = validateCourseForUser(lab, user);
+
+                            // add lec/lab to edit table
+                            if (lec != null && lecReason == null) {
+                                user.addCourse(lec);
+                                calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                                addedAny = true;
+                                // add lab to user's schedule if present and valid
+                                if (lab != null && labReason == null) {
                                     user.addCourse(lab);
                                     calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
-                                    addedAny = true;
-                                } else {
-                                    if (failReason == null) failReason = "Lab not added: " + reason;
-                                    else failReason += "; Lab not added: " + reason;
+                                } else if (lab != null && labReason != null) {
+                                    if (failReason == null) failReason = "Lab not added: " + labReason;
+                                    else failReason += "; Lab not added: " + labReason;
                                 }
+                                // show only one row for the pair
+                                if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                            } else if (lab != null && labReason == null) {
+                                // lecture either not present or couldn't be added, but lab can be
+                                user.addCourse(lab);
+                                calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                addedAny = true;
+                                if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                            } else {
+                                // neither added
+                                if (lec != null && lecReason != null) failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
+                                if (lab != null && labReason != null) failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
                             }
 
                             if (addedAny) {
@@ -1171,27 +1184,78 @@ public class Dashboard {
                     Course c = getTableView().getItems().get(getIndex());
                     if (c == null) { setText(null); setGraphic(null); return; }
 
-                    // Card container
                     HBox card = new HBox();
                     card.setSpacing(12);
                     card.getStyleClass().add("edit-row-card");
 
-                    VBox info = new VBox();
-                    info.setSpacing(6);
-                    Label title = new Label(c.getCourseCode() + " — " + c.getCourseTitle());
-                    title.setFont(Fonts.loadMontserratRegular(18));
-                    title.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
-                    Label subtitle = new Label("Sec " + c.getSection() + "    " + (c.getTimes() == null ? "" : c.getTimes()));
-                    subtitle.setFont(Fonts.loadMontserratRegular(14));
-                    subtitle.setStyle("-fx-text-fill: #2b4865;");
-                    Label location = new Label("Location: " + (c.getRooms() == null ? "TBA" : c.getRooms()));
-                    location.setFont(Fonts.loadMontserratRegular(13));
-                    location.setStyle("-fx-text-fill: #3b556b;");
-                    info.getChildren().addAll(title, subtitle, location);
+                    // Lecture card LGFT
+                    VBox leftCard = new VBox();
+                    leftCard.setSpacing(6);
+                    leftCard.getStyleClass().add("edit-side-card");
+                    Label leftHeader = new Label("Lecture");
+                    leftHeader.setFont(Fonts.loadMontserratRegular(14));
+                    leftHeader.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
 
+                    Course lecture = null;
+                    Course lab = null;
+                    if (c instanceof Lecture) {
+                        lecture = c;
+                    } else if (c instanceof Laboratory) {
+                        lab = c;
+                        Laboratory L = (Laboratory) c;
+                        lecture = L.getlectureSection();
+                    }
 
+                    if (lecture == null && c instanceof Lecture) lecture = c; // safety
 
-                    card.getChildren().add(info);
+                    Label leftTitle = new Label(lecture != null ? lecture.getCourseCode() + " — " + lecture.getCourseTitle() : "-- No corresponding class --");
+                    leftTitle.setFont(Fonts.loadMontserratRegular(16));
+                    leftTitle.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
+                    Label leftSub = new Label(lecture != null ? ("Sec " + (lecture.getSection() == null ? "" : lecture.getSection()) + "    " + (lecture.getTimes() == null ? "" : lecture.getTimes())) : "");
+                    leftSub.setFont(Fonts.loadMontserratRegular(13));
+                    leftSub.setStyle("-fx-text-fill: #2b4865;");
+                    Label leftLoc = new Label(lecture != null ? ("Location: " + (lecture.getRooms() == null ? "TBA" : lecture.getRooms())) : "");
+                    leftLoc.setFont(Fonts.loadMontserratRegular(12));
+                    leftLoc.setStyle("-fx-text-fill: #3b556b;");
+                    Label leftDays = createDaysBox(lecture != null ? lecture.getDays() : null);
+                    leftCard.getChildren().addAll(leftHeader, leftTitle, leftSub, leftLoc, leftDays);
+
+                    // Lab card RIGHT
+                    VBox rightCard = new VBox();
+                    rightCard.setSpacing(6);
+                    rightCard.getStyleClass().add("edit-side-card");
+                    Label rightHeader = new Label("Lab/Recit");
+                    rightHeader.setFont(Fonts.loadMontserratRegular(14));
+                    rightHeader.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
+
+                    if (lab == null) {
+                        // attempt to find a matching lab when starting from a lecture
+                        if (lecture instanceof Lecture) {
+                            Lecture L = (Lecture) lecture;
+                            if (!L.getLabSections().isEmpty()) lab = L.getLabSections().get(0);
+                        }
+                    }
+
+                    Label rightTitle = new Label(lab != null ? lab.getCourseCode() + " — " + lab.getCourseTitle() : "-- No corresponding class --");
+                    rightTitle.setFont(Fonts.loadMontserratRegular(16));
+                    rightTitle.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
+                    Label rightSub = new Label(lab != null ? ("Sec " + (lab.getSection() == null ? "" : lab.getSection()) + "    " + (lab.getTimes() == null ? "" : lab.getTimes())) : "");
+                    rightSub.setFont(Fonts.loadMontserratRegular(13));
+                    rightSub.setStyle("-fx-text-fill: #2b4865;");
+                    Label rightLoc = new Label(lab != null ? ("Location: " + (lab.getRooms() == null ? "TBA" : lab.getRooms())) : "");
+                    rightLoc.setFont(Fonts.loadMontserratRegular(12));
+                    rightLoc.setStyle("-fx-text-fill: #3b556b;");
+                    Label rightDays = createDaysBox(lab != null ? lab.getDays() : null);
+                    rightCard.getChildren().addAll(rightHeader, rightTitle, rightSub, rightLoc, rightDays);
+
+                    // Make the two cards share available width
+                    leftCard.setPrefWidth((classColSmall.getWidth() - 24) / 2.0);
+                    rightCard.setPrefWidth((classColSmall.getWidth() - 24) / 2.0);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+                    card.getChildren().addAll(leftCard, spacer, rightCard);
                     setText(null);
                     setGraphic(card);
                 }
@@ -1203,9 +1267,9 @@ public class Dashboard {
         editActionCol.setPrefWidth(160); // smaller
         editActionCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue()));
         editActionCol.setCellFactory(col -> new javafx.scene.control.TableCell<Course, Course>() {
-            private final Button btn = new Button("EDIT");
+            private final Button btn = new Button("DELETE");
             {
-                btn.setStyle("-fx-background-color: linear-gradient(#2ecc71, #27ae60); -fx-border-color: transparent; -fx-text-fill: white; -fx-background-radius: 8;");
+                btn.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff827f, #ff4c4c); -fx-border-color: transparent; -fx-text-fill: white; -fx-background-radius: 8;");
                 btn.setPrefWidth(120);
                 btn.setPrefHeight(36);
             }
@@ -1215,6 +1279,13 @@ public class Dashboard {
                     setGraphic(null);
                 } else {
                     btn.setFont(Fonts.loadMontserratRegular(16));
+                    // remove the item from the table when delete clicked (NOT WORKING PROPERLY  PA)
+                    btn.setOnAction(ev -> {
+                        try {
+                            getTableView().getItems().remove(item);
+                        } catch (Exception ex) {
+                        }
+                    });
                     setGraphic(btn);
                 }
             }
@@ -1517,34 +1588,45 @@ public class Dashboard {
         if (s.isEmpty()) return days;
 
         String[] tokens = s.split("\\s+");
-
-        // clean thursday
         for (String tok : tokens) {
+            if (tok == null || tok.isEmpty()) continue;
             String t = tok.replaceAll("[^A-Z]", "");
-            if (t.equals("TH")) days.add("Th");
-        }
+            if (t.isEmpty()) continue;
 
-        // clean saturday
-        for (String tok : tokens) {
-            String t = tok.replaceAll("[^A-Z]", "");
-            if (t.equals("SA")) days.add("Sa");
-        }
-
-        // the rest of the weeks that are not double letters
-        for (String tok : tokens) {
-            String t = tok.replaceAll("[^A-Z]", "");
-            if (t.length() == 1) {
-                switch (t.charAt(0)) {
-                    case 'M': days.add("M"); break;
-                    case 'T': days.add("T"); break;
-                    case 'W': days.add("W"); break;
-                    case 'F': days.add("F"); break;
-                }
+            // Handle Thursday first so it's not mistaken for "T"
+            if (t.contains("TH")) {
+                days.add("Th");
+                // If token also contains T separate from TH (e.g., TTH), include T as well
+                if (t.contains("T") && !t.equals("TH")) days.add("T");
             }
+
+            if (t.contains("M")) days.add("M");
+            if (t.contains("T") && !t.contains("TH")) days.add("T");
+            if (t.contains("W")) days.add("W");
+            if (t.contains("SA")) days.add("Sa");
+            if (t.contains("F")) days.add("F");
         }
 
         return days;
     }    
+
+    // small yellow-styled Label showing days (ordered: M T W Th F Sa)
+    private Label createDaysBox(String raw) {
+        Label lbl = new Label("");
+        if (raw == null) return lbl;
+        Set<String> set = parseDays(raw);
+        if (set.isEmpty()) return lbl;
+
+        List<String> order = Arrays.asList("M","T","W","Th","F","Sa");
+        List<String> present = new ArrayList<>();
+        for (String o : order) if (set.contains(o)) present.add(o);
+        String text = String.join(" ", present);
+
+        lbl.setText(text);
+        lbl.setFont(Fonts.loadMontserratRegular(12));
+        lbl.setStyle("-fx-background-color: linear-gradient(#FFD54F, #ffb91a); -fx-background-radius: 8; -fx-padding: 6 10 6 10; -fx-text-fill: #0b2545; -fx-font-weight: bold;");
+        return lbl;
+    }
 
     
         
