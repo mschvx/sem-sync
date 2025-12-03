@@ -508,7 +508,7 @@ public class Dashboard {
         calendarLabel.setLayoutY(calY);
         calendarLabel.setPrefWidth(calWidth);
         calendarLabel.setPrefHeight(calHeaderHeight);
-        calendarLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
+        calendarLabel.getStyleClass().add("fixed-header");
 
         Calendar calendar = new Calendar(calWidth, calHeight); // call the calendar from the calendar package and make a new calendar
         Pane calendarPane = calendar.getView();
@@ -522,7 +522,7 @@ public class Dashboard {
         manageLabel.setLayoutY(calendarTopY + calHeight + 16);
         manageLabel.setPrefWidth(calWidth);
         manageLabel.setPrefHeight(48);
-        manageLabel.setStyle("-fx-background-color: linear-gradient(#439fd0, #318fb8); -fx-text-fill: white; -fx-padding: 10 18 10 18; -fx-background-radius: 8; -fx-font-weight: bold;");
+        manageLabel.getStyleClass().add("fixed-header");
 
         // Search fields (placeholders - not wired yet)
         Label lblSearchCode = new Label("Search by Course Code");
