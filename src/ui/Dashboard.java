@@ -64,7 +64,7 @@ public class Dashboard {
 
     private Map<Lecture, Laboratory> lectureToAddedLab = new HashMap<>();
     // Show dashboard for a specific user (so we can display degree greeting)
-    public void showDashboard(Stage primaryStage, Students user) {
+    public void showDashboard(Stage primaryStage, Students user, boolean scrollToCalendar) {
         Pane root = new Pane();
         root.getStyleClass().add("root");
         Scene scene = new Scene(root, 1536, 864);
@@ -1501,6 +1501,59 @@ public class Dashboard {
 
 
         primaryStage.show();
+
+    
+        final boolean[] firstShown = new boolean[]{false};
+        Runnable ensureTopOnce = () -> {
+            if (firstShown[0]) return;
+            try {
+                // upon first load put to calendar immediately
+                if (scrollToCalendar) {
+                    double targetY = 0.0;
+                    try {
+                        targetY = calendarPane.getLayoutY();
+                    } catch (Exception ex) { targetY = 0.0; }
+
+                    double contentHeight = content.getBoundsInLocal().getHeight();
+                    double viewportHeight = contentScroll.getViewportBounds().getHeight();
+                    double denom = Math.max(1.0, contentHeight - viewportHeight);
+                    double v = Math.max(0.0, Math.min(1.0, targetY / denom));
+                    contentScroll.setVvalue(v);
+                    contentScroll.setHvalue(0.0);
+                    sidebarScroll.setHvalue(0.0);
+                } else {
+                    contentScroll.setVvalue(0.0);
+                    contentScroll.setHvalue(0.0);
+                    sidebarScroll.setHvalue(0.0);
+                }
+
+                // ensure layout updates
+                contentScroll.requestLayout();
+            } catch (Exception ignore) {}
+            firstShown[0] = true;
+        };
+
+        // Try once on the FX thread, and also after viewport/scene size changes
+        javafx.application.Platform.runLater(ensureTopOnce);
+        contentScroll.viewportBoundsProperty().addListener((obs, old, nw) -> javafx.application.Platform.runLater(ensureTopOnce));
+        scene.widthProperty().addListener((obs, old, nw) -> javafx.application.Platform.runLater(ensureTopOnce));
+        scene.heightProperty().addListener((obs, old, nw) -> javafx.application.Platform.runLater(ensureTopOnce));
+
+        // Some platforms perform additional layout passes after show(); add a
+        // few short delayed re-applies to guarantee the scroll position.
+        try {
+            javafx.animation.PauseTransition p1 = new javafx.animation.PauseTransition(Duration.millis(80));
+            p1.setOnFinished(ev -> javafx.application.Platform.runLater(ensureTopOnce));
+            p1.play();
+
+            javafx.animation.PauseTransition p2 = new javafx.animation.PauseTransition(Duration.millis(220));
+            p2.setOnFinished(ev -> javafx.application.Platform.runLater(ensureTopOnce));
+            p2.play();
+
+            javafx.animation.PauseTransition p3 = new javafx.animation.PauseTransition(Duration.millis(500));
+            p3.setOnFinished(ev -> javafx.application.Platform.runLater(ensureTopOnce));
+            p3.play();
+        } catch (Exception ignore) {}
     }
 
     // for formatting well

@@ -197,7 +197,7 @@ public class References {
 
     goBackButton.setOnAction(e -> {
         if (Main.isLoggedIn) {
-            new Dashboard().showDashboard(primaryStage, Main.loggedInUser);
+            new Dashboard().showDashboard(primaryStage, Main.loggedInUser, false);
         } else {
             Main main = new Main();
             main.start(primaryStage);

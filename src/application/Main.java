@@ -441,7 +441,7 @@ public class Main extends Application {
                         }
                         if (toRemove != null) root.getChildren().remove(toRemove);
                         Dashboard db = new Dashboard();
-                        db.showDashboard(primaryStage, currentUser);
+                        db.showDashboard(primaryStage, currentUser, true);
                     } else {
                         errorAlert.setHeaderText("Login Failed!");
                         errorAlert.setContentText("Wrong account details.");

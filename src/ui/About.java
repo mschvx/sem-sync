@@ -371,7 +371,7 @@ public class About {
     // Go Back event handler
     goBackButton.setOnAction(e -> {
         if (Main.isLoggedIn) { // for the boolean is logged in go to main, else go to the dashboard
-            new Dashboard().showDashboard(primaryStage, Main.loggedInUser);
+            new Dashboard().showDashboard(primaryStage, Main.loggedInUser, false);
         } else {
             Main main = new Main();
             main.start(primaryStage);
