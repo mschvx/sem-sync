@@ -1597,8 +1597,6 @@ public class Dashboard {
         scene.widthProperty().addListener((obs, old, nw) -> javafx.application.Platform.runLater(ensureTopOnce));
         scene.heightProperty().addListener((obs, old, nw) -> javafx.application.Platform.runLater(ensureTopOnce));
 
-        // Some platforms perform additional layout passes after show(); add a
-        // few short delayed re-applies to guarantee the scroll position.
         try {
             javafx.animation.PauseTransition p1 = new javafx.animation.PauseTransition(Duration.millis(80));
             p1.setOnFinished(ev -> javafx.application.Platform.runLater(ensureTopOnce));

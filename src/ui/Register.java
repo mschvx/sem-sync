@@ -459,6 +459,13 @@ public class Register {
             success.setTitle("Account Created");
             success.setHeaderText(null);
             success.setContentText("Account created. Now go log in!");
+
+            // dinagdag ko yung  dun sa error message ui for scuccess message 
+            DialogPane successPane = success.getDialogPane();
+            successPane.getStylesheets().add(
+                Main.class.getResource("application.css").toExternalForm()
+            );
+            successPane.getStyleClass().add("error-alert");
             success.showAndWait();
 
             // go back to log in page
