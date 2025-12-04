@@ -85,7 +85,20 @@ public class Students {
     }
 
     public void addCourse(Course c) {
-        if (c != null) this.userCourses.add(c);
+        if (c == null) return;
+        // Prevent duplicate courses (same course code + section) from being added
+        String ccNew = c.getCourseCode() == null ? "" : c.getCourseCode().trim().toUpperCase();
+        String secNew = c.getSection() == null ? "" : c.getSection().trim().toUpperCase();
+        for (Course existing : this.userCourses) {
+            if (existing == null) continue;
+            String ccExist = existing.getCourseCode() == null ? "" : existing.getCourseCode().trim().toUpperCase();
+            String secExist = existing.getSection() == null ? "" : existing.getSection().trim().toUpperCase();
+            if (!ccNew.isEmpty() && ccNew.equals(ccExist) && secNew.equals(secExist)) {
+                // already present
+                return;
+            }
+        }
+        this.userCourses.add(c);
     }
 
 }

@@ -56,6 +56,7 @@ import students.CurriculumLoader;
 import students.DegreeLookup;
 import students.DegreeProgram;
 import students.Students;
+import students.UserCourseStorage;
 import javafx.scene.input.MouseEvent;
 
 public class Dashboard {
@@ -146,7 +147,10 @@ public class Dashboard {
         btnAbout.setFont(Fonts.loadSensaWild(22));
         btnAbout.getStyleClass().add("btn-about");
         btnAbout.getStyleClass().add("sidebar-pill");
-        btnAbout.setOnAction(ev -> new About().showAbout(primaryStage));
+        btnAbout.setOnAction(ev -> {
+            try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {} // save when go to about
+            new About().showAbout(primaryStage);
+        });
 
         Button btnProfile = new Button("PROFILE");
         btnProfile.setLayoutX(buttonXPos);
@@ -213,7 +217,10 @@ public class Dashboard {
         btnCredits.setPrefHeight(48);
         btnCredits.setFont(Fonts.loadSensaWild(22));
         btnCredits.getStyleClass().add("btn-about");
-        btnCredits.setOnAction(ev -> new Credits().showCredits(primaryStage));
+        btnCredits.setOnAction(ev -> {
+            try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {}
+            new Credits().showCredits(primaryStage); // save when go to credits
+        });
         btnCredits.getStyleClass().add("sidebar-pill");
 
         Button btnReferences = new Button("REFERENCES");
@@ -224,7 +231,10 @@ public class Dashboard {
         btnReferences.setFont(Fonts.loadSensaWild(22));
         btnReferences.getStyleClass().add("btn-register");
         btnReferences.getStyleClass().add("sidebar-pill");
-        btnReferences.setOnAction(ev -> new References().showReferences(primaryStage));
+        btnReferences.setOnAction(ev -> {
+            try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {}
+            new References().showReferences(primaryStage);
+        }); // save when go ot references
 
         // Logout button: 
         Button btnLogout = new Button("LOG OUT");
@@ -274,6 +284,8 @@ public class Dashboard {
 
         btnLogout.setOnAction(ev -> {
             try {
+                // save before logging out
+                try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {}
                 Main.isLoggedIn = false;
                 Main.loggedInUser = null;
                 Main main = new Main();
@@ -347,6 +359,7 @@ public class Dashboard {
                     Object openFlag = content.getProperties().get("profileOpen");
                     boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
                     if (open) {
+                        try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {} // save whn changing dashboard/profile states
                         new Profile().showInContent(content, scene, user, contentScroll);
                     }
                 } catch (Exception ex) {
@@ -368,6 +381,7 @@ public class Dashboard {
                     Object openFlag = content.getProperties().get("profileOpen");
                     boolean open = openFlag instanceof Boolean && (Boolean) openFlag;
                     if (!open) {
+                        try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {}
                         new Profile().showInContent(content, scene, user, contentScroll);
                     }
                 } catch (Exception ex) {
@@ -406,6 +420,7 @@ public class Dashboard {
         });
         profileView.setOnMouseClicked(ev -> {
             try {
+                try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {}
                 new Profile().showInContent(content, scene, user, contentScroll);
                 profileView.toFront();
             } catch (Exception ex) {
@@ -559,46 +574,6 @@ public class Dashboard {
         txtSearchSection.setLayoutY(1);
         txtSearchSection.setPrefWidth(220);
 
-        /*
-        // -- List of items added by user --
-        Label itemsLabel = new Label("Your Items");
-        itemsLabel.setFont(Fonts.loadMontserratRegular(28));
-        itemsLabel.setLayoutX(160);
-        itemsLabel.setLayoutY(calendarTopY + calHeight + 180);
-        itemsLabel.setStyle("-fx-text-fill: black;");
-
-        ObservableList<Course> listItems = FXCollections.observableArrayList();
-        ListView<Course> listView = new ListView<>(listItems);
-        listView.setLayoutX(160);
-        listView.setLayoutY(calendarTopY + calHeight + 220);
-        listView.setPrefWidth(1200);
-        listView.setPrefHeight(260);   
-        
-        listView.setCellFactory(lv -> new ListCell<Course>() {
-            protected void updateItem(Course item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getCourseCode() + " - " + item.getCourseTitle() + 
-                            " - Units: " + item.getUnits() + 
-                            " - Section: " + item.getSection() + 
-                            " - " + item.getTimes() + 
-                            " - " + item.getDays());
-                }
-            }
-        });
-
-        listView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-        });
-        
-        ObservableList<Course> list = FXCollections.<Course>observableArrayList();
-        ObservableList<Laboratory> labSections = FXCollections.<Laboratory>observableArrayList(); // Added if ever needed
-        ObservableList<Lecture> lecSections = FXCollections.<Lecture>observableArrayList(); // Added if ever needed
-
-        // Build a list of allowed curriculum course codes (used as reference)
-        */
-
         ObservableList<Course> list = FXCollections.<Course>observableArrayList();
         ObservableList<Laboratory> labSections = FXCollections.<Laboratory>observableArrayList(); // Added if ever needed
         ObservableList<Lecture> lecSections = FXCollections.<Lecture>observableArrayList(); // Added if ever needed
@@ -701,30 +676,6 @@ public class Dashboard {
             }
         } catch (Exception ignored) {}
         
-     
-        
-        // Add to pane
-        /*
-        Pane bottomSpacer = new Pane();
-        bottomSpacer.setLayoutX(160);
-        bottomSpacer.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 10);
-        bottomSpacer.setPrefWidth(1);
-        bottomSpacer.setPrefHeight(400);
-
-        // catalogue button
-        Button btnCatalogueMain = new Button("CATALOGUE");
-        btnCatalogueMain.setLayoutX(160);
-        btnCatalogueMain.setLayoutY(listView.getLayoutY() + listView.getPrefHeight() + 14);
-        btnCatalogueMain.setPrefWidth(220);
-        btnCatalogueMain.setPrefHeight(48);
-        btnCatalogueMain.setFont(Fonts.loadSensaWild(22));
-        btnCatalogueMain.getStyleClass().add("btn-create");
-        btnCatalogueMain.getStyleClass().add("sidebar-pill");
-        btnCatalogueMain.setOnAction(ev -> {
-            System.out.println("WALA PAAAAAA <WOIJOIDJASOIDJ");
-
-        });
-        */
 
         // Search areas
         double searchBoxWidth = 600;
@@ -997,14 +948,30 @@ public class Dashboard {
                                 if (lab != null) {
                                     // Both lecture and lab present in the pair: require both to be valid before adding
                                     if (lecReason == null && labReason == null) {
-                                        user.addCourse(lec);
-                                        calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
-                                        user.addCourse(lab);
-                                        calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                        Lecture lecCopy = new Lecture(lec.getCourseCode(), lec.getCourseTitle(), lec.getUnits(), lec.getSection(), lec.getTimes(), lec.getDays(), lec.getRooms());
+                                        Laboratory labCopy = new Laboratory(lab.getCourseCode(), lab.getCourseTitle(), lab.getUnits(), lab.getSection(), lab.getTimes(), lab.getDays(), lab.getRooms());
+                                        // attach lab to the copy
+                                        lecCopy.addLabSection(labCopy);
+
+                                        user.addCourse(lecCopy);
+                                        calendar.addCourse(lecCopy, FXCollections.observableArrayList(user.getCourses()));
+                                        user.addCourse(labCopy);
+                                        calendar.addCourse(labCopy, FXCollections.observableArrayList(user.getCourses()));
                                         // remember which lab was actually added for this lecture
-                                        try { if (lec instanceof Lecture) lectureToAddedLab.put((Lecture)lec, lab); } catch (Exception ignore) {}
+                                        try { lectureToAddedLab.put(lecCopy, labCopy); } catch (Exception ignore) {}
                                         addedAny = true;
-                                        if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                                        if (editTableRef[0] != null) {
+                                            boolean exists = false;
+                                            for (Course cc : editTableRef[0].getItems()) {
+                                                if (cc == null) continue;
+                                                String n1 = normalizeCourseCode(cc.getCourseCode()).toUpperCase();
+                                                String s1 = cc.getSection() == null ? "" : cc.getSection().trim().toUpperCase();
+                                                String n2 = normalizeCourseCode(lecCopy.getCourseCode()).toUpperCase();
+                                                String s2 = lecCopy.getSection() == null ? "" : lecCopy.getSection().trim().toUpperCase();
+                                                if (n1.equals(n2) && s1.equals(s2)) { exists = true; break; }
+                                            }
+                                            if (!exists) editTableRef[0].getItems().add(lecCopy);
+                                        }
                                     } else {
                                         // do not add either if the lab conflicts; report the reasons
                                         if (lecReason != null) failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
@@ -1013,25 +980,63 @@ public class Dashboard {
                                 } else {
                                     // only lecture present
                                     if (lecReason == null) {
-                                        user.addCourse(lec);
-                                        calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                                        Lecture lecCopy = new Lecture(lec.getCourseCode(), lec.getCourseTitle(), lec.getUnits(), lec.getSection(), lec.getTimes(), lec.getDays(), lec.getRooms());
+                                        user.addCourse(lecCopy);
+                                        calendar.addCourse(lecCopy, FXCollections.observableArrayList(user.getCourses()));
                                         addedAny = true;
-                                        if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                                        if (editTableRef[0] != null) {
+                                            boolean exists = false;
+                                            for (Course cc : editTableRef[0].getItems()) {
+                                                if (cc == null) continue;
+                                                String n1 = normalizeCourseCode(cc.getCourseCode()).toUpperCase();
+                                                String s1 = cc.getSection() == null ? "" : cc.getSection().trim().toUpperCase();
+                                                String n2 = normalizeCourseCode(lecCopy.getCourseCode()).toUpperCase();
+                                                String s2 = lecCopy.getSection() == null ? "" : lecCopy.getSection().trim().toUpperCase();
+                                                if (n1.equals(n2) && s1.equals(s2)) { exists = true; break; }
+                                            }
+                                            if (!exists) editTableRef[0].getItems().add(lecCopy);
+                                        }
                                     } else {
                                         failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
                                     }
                                 }
                             } else if (lab != null && labReason == null) {
                                 // lecture either not present or couldn't be added, but lab can be (standalone lab addition)
-                                if(user.getCourses().contains(lab.getlectureSection())) {
-                                    user.addCourse(lab);
-                                    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                // find the user's lecture 
+                                Lecture parentLecture = null;
+                                for (Course uc : user.getCourses()) {
+                                    if (!(uc instanceof Lecture)) continue;
+                                    String ucCode = uc.getCourseCode() == null ? "" : uc.getCourseCode().trim();
+                                    String ucSec = uc.getSection() == null ? "" : uc.getSection().trim();
+                                    String targetCode = lab.getlectureSection() == null ? "" : lab.getlectureSection().getCourseCode();
+                                    String targetSec = lab.getlectureSection() == null ? "" : lab.getlectureSection().getSection();
+                                    if (!ucCode.isEmpty() && ucCode.equalsIgnoreCase(targetCode) && ucSec.equalsIgnoreCase(targetSec)) {
+                                        parentLecture = (Lecture) uc; break;
+                                    }
+                                }
+                                if (parentLecture != null) {
+                                    Laboratory labCopy = new Laboratory(lab.getCourseCode(), lab.getCourseTitle(), lab.getUnits(), lab.getSection(), lab.getTimes(), lab.getDays(), lab.getRooms());
+                                    // attach to parent
+                                    parentLecture.addLabSection(labCopy);
+                                    user.addCourse(labCopy);
+                                    calendar.addCourse(labCopy, FXCollections.observableArrayList(user.getCourses()));
                                     addedAny = true;
                                     // record mapping from its lecture to this lab so edit table shows correct pairing
-                                    try { Lecture parent = lab.getlectureSection(); if (parent != null) lectureToAddedLab.put(parent, lab); } catch (Exception ignore) {}
-                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                                    try { lectureToAddedLab.put(parentLecture, labCopy); } catch (Exception ignore) {}
+                                    if (editTableRef[0] != null) {
+                                        boolean exists = false;
+                                        for (Course cc : editTableRef[0].getItems()) {
+                                            if (cc == null) continue;
+                                            String n1 = normalizeCourseCode(cc.getCourseCode()).toUpperCase();
+                                            String s1 = cc.getSection() == null ? "" : cc.getSection().trim().toUpperCase();
+                                            String n2 = normalizeCourseCode(labCopy.getCourseCode()).toUpperCase();
+                                            String s2 = labCopy.getSection() == null ? "" : labCopy.getSection().trim().toUpperCase();
+                                            if (n1.equals(n2) && s1.equals(s2)) { exists = true; break; }
+                                        }
+                                        if (!exists) editTableRef[0].getItems().add(labCopy);
+                                    }
                                 } else {
-                                    failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + lab.getlectureSection().getSection() + "\" does not exist";
+                                    failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + (lab.getlectureSection()==null?"":lab.getlectureSection().getSection()) + "\" does not exist";
                                 }
                             } else {
                                 // neither added
@@ -1044,6 +1049,7 @@ public class Dashboard {
                             if (addedAny) {
                                 btn.setDisable(true);
                                 btn.setText("ADDED");
+                                try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {} // save when added
                                 showToast(root, "Added to your schedule", 2200);
                             }
                             if (!addedAny && failReason != null) {
@@ -1434,7 +1440,11 @@ public class Dashboard {
 
                             classTable.refresh();
                             if (editTableRef[0] != null) editTableRef[0].refresh();
-
+                            try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {} // save when removed/delete course
+                            try {
+                                try { UserCourseStorage.loadCourses(user); } catch (Exception ignore) {}
+                                try { calendar.reloadCourses(user.getCourses() == null ? java.util.Collections.emptyList() : user.getCourses()); } catch (Exception ignore) {}
+                            } catch (Exception ignore) {}
                             showToast(root, "Removed from your schedule", 1800);
 
                         } catch (Exception ex) {
@@ -1481,6 +1491,7 @@ public class Dashboard {
             editTable.layoutYProperty(), editTable.prefHeightProperty()));
         btnViewCatalogue.setOnAction(ev -> {
             try {
+                try { UserCourseStorage.saveCourses(user); } catch (Exception ignore) {} // save when go to caaltogue
                 new Catalogue().showCatalogue(primaryStage, user);
             } catch (Exception ex) { ex.printStackTrace(); }
         });
@@ -1508,6 +1519,43 @@ public class Dashboard {
         // add night overlay 
         root.getChildren().add(nightView);
         nightView.toBack();
+
+        // Populate course
+        try {
+            Main.allCourseOfferings.clear();
+            Main.allCourseOfferings.addAll(list);
+        } catch (Exception ignore) {}
+
+        // Load user's saved courses and reflect them in the calendar and edit table
+        try {
+            UserCourseStorage.loadCourses(user);
+            if (user.getCourses() != null) {
+                for (Course c : user.getCourses()) {
+                    if (c == null) continue;
+                    try { calendar.addCourse(c, FXCollections.observableArrayList(user.getCourses())); } catch (Exception ignored) {}
+                    try {
+                        boolean exists = false;
+                        for (Course cc : editTable.getItems()) {
+                            if (cc == null) continue;
+                            String n1 = normalizeCourseCode(cc.getCourseCode()).toUpperCase();
+                            String s1 = cc.getSection() == null ? "" : cc.getSection().trim().toUpperCase();
+                            String n2 = normalizeCourseCode(c.getCourseCode()).toUpperCase();
+                            String s2 = c.getSection() == null ? "" : c.getSection().trim().toUpperCase();
+                            if (n1.equals(n2) && s1.equals(s2)) { exists = true; break; }
+                        }
+                        if (!exists) editTable.getItems().add(c);
+                    } catch (Exception ignored) {}
+                    // if lab, map to its lecture so edit table shows pairing correctly
+                    try {
+                        if (c instanceof Laboratory) {
+                            Laboratory lab = (Laboratory)c;
+                            Lecture parent = lab.getlectureSection();
+                            if (parent != null) lectureToAddedLab.put(parent, lab);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        } catch (Exception ignore) {}
 
 
         primaryStage.show();
@@ -1648,54 +1696,6 @@ public class Dashboard {
 
         return new int[]{start, end};
     }
-
-    // Parse a time string into decimals
-    /*private double parseTimeDecimal(String raw) {
-        if (raw == null) return 0.0;
-        raw = raw.trim();
-        if (raw.isEmpty()) return 0.0;
-
-        try {
-            String[] parts = raw.split(":");
-            int h = 0;
-            int m = 0;
-            if (parts.length > 0) {
-                String hs = parts[0].replaceAll("[^0-9]", "");
-                if (!hs.isEmpty()) h = Integer.parseInt(hs);
-            }
-            if (parts.length > 1) {
-                String ms = parts[1].replaceAll("[^0-9]", "");
-                if (!ms.isEmpty()) {
-                    if (ms.length() > 2) ms = ms.substring(0,2);
-                    m = Integer.parseInt(ms);
-                }
-            }
-            double dec = h + (m / 60.0);
-            if (dec < 7) dec += 12; 
-            return dec;
-        } catch (Exception ex) {
-            return 0.0;
-        }
-    }*/
-
-    /*private double[] parseTimeRangeDecimal(String raw) {
-        if (raw == null) return new double[]{0.0, 0.0};
-        String[] parts = raw.split("-");
-        if (parts.length < 2) {
-            double v = parseTimeDecimal(raw.trim());
-            return new double[]{v, v};
-        }
-        double start = parseTimeDecimal(parts[0].trim());
-        double end = parseTimeDecimal(parts[1].trim());
-        if (end <= start) end += 12;
-        
-        if (start >= 4 && start <= 11) {
-            if (start <= 12) start += 12;
-            if (end <= 12) end += 12;
-        }
-
-        return new double[]{start, end};
-    }*/
 
     private boolean courseChecker(Course selectedCourse, Students user) {
         if (selectedCourse == null || user == null) return false;
@@ -1859,10 +1859,7 @@ public class Dashboard {
         return null;
     }
 
-    /**
-     * Parse "H:mm" or "HH:mm" into decimal hours (e.g. "9:30" -> 9.5).
-     * Returns 0.0 on parse failure.
-     */
+    // Transform time HOUR:MINUTE to decimalsl
     private double parseTimeDecimal(String raw) {
         if (raw == null) return 0.0;
         String s = raw.trim();
@@ -1877,7 +1874,7 @@ public class Dashboard {
             if (parts.length > 1) {
                 String ms = parts[1].replaceAll("\\D", "");
                 if (!ms.isEmpty()) {
-                    // if user somehow provided more than two digits, take first two
+                    // if somehow provided more than two digits, take first two
                     if (ms.length() > 2) ms = ms.substring(0, 2);
                     m = Integer.parseInt(ms);
                 }
@@ -2025,6 +2022,36 @@ public class Dashboard {
             boolean titlesEqualWhenNeeded = !(ncc1.isEmpty() || ncc2.isEmpty()) ? true : t1.equalsIgnoreCase(t2);
 
             if (codesEqual && sectionsEqual && titlesEqualWhenNeeded) return true;
+            //if codes match but sections differ, consider lab/lecture relationships
+            if (codesEqual && !sectionsEqual) {
+                // If the course us a laboratory, see if the user has that lab saved
+                try {
+                    if (course instanceof courses.Laboratory) {
+                        // direct lab match
+                        if (s1.equalsIgnoreCase(s2)) return true;
+                        // or user has a lec that contains this lab
+                        if (c instanceof courses.Lecture) {
+                            courses.Lecture ul = (courses.Lecture) c;
+                            for (courses.Laboratory l : ul.getLabSections()) {
+                                String ls = l.getSection() == null ? "" : l.getSection().trim();
+                                if (ls.equalsIgnoreCase(s2)) return true;
+                            }
+                        }
+                    }
+                    // vice versa for lecture naman
+                    if (course instanceof courses.Lecture) {
+                        if (c instanceof courses.Lecture) return true;
+                        if (c instanceof courses.Laboratory) {
+                            courses.Laboratory ulab = (courses.Laboratory) c;
+                            courses.Lecture parent = ulab.getlectureSection();
+                            if (parent != null) {
+                                String pc = parent.getCourseCode() == null ? "" : parent.getCourseCode().trim();
+                                if (!pc.isEmpty() && pc.equalsIgnoreCase(cc2)) return true;
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
         }
         return false;
     }

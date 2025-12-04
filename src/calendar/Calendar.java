@@ -3,6 +3,8 @@ package calendar;
 
 import application.Fonts;
 import courses.Course;
+import courses.Lecture;
+import courses.Laboratory;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Line;
@@ -339,25 +341,102 @@ public class Calendar {
             created.add(block);
         }
 
-	        if (!created.isEmpty()) {
-	    		blocks.put(selectedCourse, created);
-	    		calendarCourses.add(selectedCourse);
-	    }
+            if (!created.isEmpty()) {
+                blocks.put(selectedCourse, created);
+                calendarCourses.add(selectedCourse);
+            }
+
+            // If lec has lab, sepaerate blocks
+            try {
+                if (selectedCourse instanceof Lecture) {
+                    Lecture lec = (Lecture) selectedCourse;
+                    for (Laboratory lab : lec.getLabSections()) {
+                        boolean saved = false;
+                        if (list != null) {
+                            for (Course uc : list) {
+                                if (uc == null) continue;
+                                if (!(uc instanceof Laboratory)) continue;
+                                String ucCode = uc.getCourseCode() == null ? "" : uc.getCourseCode().trim();
+                                String ucSec = uc.getSection() == null ? "" : uc.getSection().trim();
+                                String labCode = lab.getCourseCode() == null ? "" : lab.getCourseCode().trim();
+                                String labSec = lab.getSection() == null ? "" : lab.getSection().trim();
+                                if (!ucCode.isEmpty() && ucCode.equalsIgnoreCase(labCode) && ucSec.equalsIgnoreCase(labSec)) {
+                                    saved = true; break;
+                                }
+                            }
+                        }
+                        // Also add lab if it is attached to the lecture (loader attached it),
+                        // or if the user explicitly saved that lab (saved == true).
+                        boolean attachedToLecture = false;
+                        try {
+                            attachedToLecture = lec.getLabSections().stream().anyMatch(l -> {
+                                String s1 = l.getSection() == null ? "" : l.getSection().trim();
+                                String s2 = lab.getSection() == null ? "" : lab.getSection().trim();
+                                String c1 = l.getCourseCode() == null ? "" : l.getCourseCode().trim();
+                                String c2 = lab.getCourseCode() == null ? "" : lab.getCourseCode().trim();
+                                return c1.equalsIgnoreCase(c2) && s1.equalsIgnoreCase(s2);
+                            });
+                        } catch (Exception ignored2) {}
+
+                        if (saved || attachedToLecture) {
+                            addCourse(lab, list);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
     }
 
     // Removes all course blocks associated with the given course
     public void removeCourse(Course c) {
         if (c == null) return;
-        List<Node> nodes = blocks.remove(c);
-        if (nodes == null) return;
-        for (Node n : nodes) root.getChildren().remove(n);
-        
-        calendarCourses.removeIf(cc ->
-            cc.getCourseCode().equals(c.getCourseCode()) &&
-            cc.getSection().equals(c.getSection())
-        );
-        
-        blocks.remove(c, nodes);
+        // Remove any block entries whose course  matches the course to remove
+        String targetCode = c.getCourseCode() == null ? "" : c.getCourseCode().trim().toUpperCase();
+        String targetSec = c.getSection() == null ? "" : c.getSection().trim().toUpperCase();
+
+        // collect section and course code and pairs
+        List<Course> toRemove = new ArrayList<>();
+        for (Course key : new ArrayList<>(blocks.keySet())) {
+            if (key == null) continue;
+            String kCode = key.getCourseCode() == null ? "" : key.getCourseCode().trim().toUpperCase();
+            String kSec = key.getSection() == null ? "" : key.getSection().trim().toUpperCase();
+            if (kCode.equals(targetCode) && kSec.equals(targetSec)) toRemove.add(key);
+        }
+
+        for (Course key : toRemove) {
+            List<Node> nodes = blocks.remove(key);
+            if (nodes != null) {
+                for (Node n : nodes) root.getChildren().remove(n);
+            }
+        }
+
+        // Remove from calendarCourses any entries matching the same code+section
+        calendarCourses.removeIf(cc -> {
+            if (cc == null) return false;
+            String ccCode = cc.getCourseCode() == null ? "" : cc.getCourseCode().trim().toUpperCase();
+            String ccSec = cc.getSection() == null ? "" : cc.getSection().trim().toUpperCase();
+            return ccCode.equals(targetCode) && ccSec.equals(targetSec);
+        });
+    }
+
+    // Reloads the calendar (WILL BE USED PAG NAGDEDELETE KASI DI AGAD NAGBABAGO CALENDAR)
+    public void reloadCourses(java.util.List<Course> list) {
+        try {
+            // remove all nodes of  existing blocks
+            for (List<Node> nodes : new ArrayList<>(blocks.values())) {
+                if (nodes == null) continue;
+                for (Node n : nodes) {
+                    try { root.getChildren().remove(n); } catch (Exception ignore) {}
+                }
+            }
+            blocks.clear();
+            calendarCourses.clear();
+
+            if (list == null) return;
+            // parameter to allow lectures to detect saved labs
+            for (Course c : list) {
+                try { addCourse(c, FXCollections.observableArrayList(list)); } catch (Exception ignore) {}
+            }
+        } catch (Exception ignored) {}
     }
 
     // Attempts to extract a valid integer hour from a time string

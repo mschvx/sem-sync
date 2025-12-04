@@ -32,6 +32,9 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.DialogPane;
+import courses.Course;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Main extends Application {
 
@@ -41,6 +44,9 @@ public class Main extends Application {
     public static boolean isLoggedIn = false;
     // Currently logged-in user 
     public static Students loggedInUser = null; // null start with it if no one using it yet
+
+    // Master list of all course offerings for the load and save logic
+    public static List<Course> allCourseOfferings = new ArrayList<>();
 
     // Track consecutive wrong login attempts
     private int wrongAttempts = 0;
