@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
@@ -367,11 +368,26 @@ public class Main extends Application {
             aboutButton.setFont(Fonts.loadMontserratRegular(20));
             aboutButton.getStyleClass().add("btn-about"); // Hover effect
             content.getChildren().add(aboutButton);
+            
+            Button exitButton = new Button("Exit");
+            exitButton.setLayoutX(245);
+            exitButton.setLayoutY(690);
+            exitButton.setPrefWidth(250);
+            exitButton.setPrefHeight(50);
+            exitButton.setFont(Fonts.loadMontserratRegular(20));
+            exitButton.getStyleClass().add("btn-exit"); // Hover effect
+            content.getChildren().add(exitButton);
 
             // Go to about page if clicked
             aboutButton.setOnAction(e -> {
                 About about = new About();
                 about.showAbout(primaryStage);
+            });
+            
+            // Exit button
+            exitButton.setOnAction(e -> {
+                Platform.exit();
+                System.exit(0);
             });
 
             // Event handlers for buttons
