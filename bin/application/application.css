@@ -81,7 +81,7 @@
 }
 
 .button.btn-exit:hover {
-    -fx-background-color: linear-gradient(#e87a7a, #c53a3a);
+    -fx-background-color: linear-gradient(#f08c8c, #d14a4a);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
 }
 
@@ -421,6 +421,35 @@
     -fx-background-color: linear-gradient(#439fd0, #318fb8);
     -fx-padding: 10 18 10 18;
     -fx-background-radius: 8;
+}
+
+.dialog-pane.error-alert,
+.dialog-pane.error-alert > *.header-panel,
+.dialog-pane.error-alert > *.content,
+.dialog-pane.error-alert > *.button-bar {
+    -fx-background-image: url("file:Elements/ErrorBackground.jpg");
+    -fx-background-repeat: repeat;       
+    -fx-background-size: auto;            
+    -fx-background-position: center;
+     font-family: "Montserrat";
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 20px;
+}
+
+.dialog-pane.error-alert {
+	-fx-font-weight: bold;
+}
+
+.dialog-pane.error-alert .label {
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane.error-alert .button {
+    -fx-background-color: linear-gradient(#e46363, #b93434);
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-background-radius: 5;
 }
 
 

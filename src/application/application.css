@@ -81,7 +81,7 @@
 }
 
 .button.btn-exit:hover {
-    -fx-background-color: linear-gradient(#e87a7a, #c53a3a);
+    -fx-background-color: linear-gradient(#f08c8c, #d14a4a);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 10, 0.5, 0, 4);
 }
 
