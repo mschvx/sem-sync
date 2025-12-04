@@ -31,6 +31,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.DialogPane;
 
 public class Main extends Application {
 
@@ -418,6 +419,9 @@ public class Main extends Application {
                     Students currentUser = null;
 
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    DialogPane dialogPane = errorAlert.getDialogPane();
+                    dialogPane.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+                    dialogPane.getStyleClass().add("error-alert");
 
                     // Blank inputs
                     if (uname.isBlank() || pass.isEmpty()) {

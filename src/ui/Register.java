@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Font;
@@ -359,6 +360,11 @@ public class Register {
             boolean usernameFound = false;
             
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            DialogPane dialogPane = errorAlert.getDialogPane();
+            dialogPane.getStylesheets().add(
+            	    Main.class.getResource("application.css").toExternalForm()
+            	);
+            dialogPane.getStyleClass().add("error-alert");
 
             // First and Last name required
             if (first.isBlank() || last.isBlank()) {
