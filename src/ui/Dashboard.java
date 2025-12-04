@@ -537,6 +537,7 @@ public class Dashboard {
         lblSearchCode.setLayoutX(160);
         lblSearchCode.setLayoutY(calendarTopY + calHeight + 100);
         TextField txtSearchCode = new TextField();
+		txtSearchCode.setPromptText("e.g. CMSC 12");
         txtSearchCode.setLayoutX(360);
         txtSearchCode.setLayoutY(1);
         txtSearchCode.setPrefWidth(220);
@@ -545,6 +546,7 @@ public class Dashboard {
         lblSearchSection.setLayoutX(160);
         lblSearchSection.setLayoutY(calendarTopY + calHeight + 100);
         TextField txtSearchSection = new TextField();
+		txtSearchSection.setPromptText("e.g. G-1L");
         txtSearchSection.setLayoutX(360);
         txtSearchSection.setLayoutY(1);
         txtSearchSection.setPrefWidth(220);
@@ -1471,7 +1473,7 @@ public class Dashboard {
             editTable.layoutYProperty(), editTable.prefHeightProperty()));
         btnViewCatalogue.setOnAction(ev -> {
             try {
-                System.out.println("test");
+                new Catalogue().showCatalogue(primaryStage, user);
             } catch (Exception ex) { ex.printStackTrace(); }
         });
         btnViewCatalogue.setFocusTraversable(false);
