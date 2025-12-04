@@ -38,6 +38,93 @@ public class References {
         Pane root = new Pane();
         Scene scene = new Scene(root, 1536, 864);
         scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+        // tutorial images 1, 2, 3, and text
+        final Timeline[] tutTimeline = new Timeline[1];
+        final ImageView[] tutViews = new ImageView[3];
+        final Image[] origTutImages = new Image[3];
+        try {
+            Image tut1 = new Image("file:Elements/1.png");
+            Image tut2 = new Image("file:Elements/2.png");
+            Image tut3 = new Image("file:Elements/3.png");
+            Image arrowImg = new Image("file:Elements/arrow.png");
+            ImageView tut1View = new ImageView(tut1);
+            tut1View.setFitWidth(200);
+            tut1View.setPreserveRatio(true);
+            tut1View.setLayoutX(870);
+            tut1View.setLayoutY(200);
+
+            ImageView arrowViewImg1 = new ImageView(arrowImg);
+            arrowViewImg1.setFitWidth(180);
+            arrowViewImg1.setPreserveRatio(true);
+            arrowViewImg1.setLayoutX(1150);
+            arrowViewImg1.setLayoutY(300);
+            
+            ImageView arrowViewImg2 = new ImageView(arrowImg);
+            arrowViewImg2.setFitWidth(180);
+            arrowViewImg2.setPreserveRatio(true);
+            arrowViewImg2.setLayoutX(1090);
+            arrowViewImg2.setLayoutY(480);
+            arrowViewImg2.setScaleX(-1);
+
+            ImageView tut2View = new ImageView(tut2);
+            tut2View.setFitWidth(250);
+            tut2View.setPreserveRatio(true);
+            tut2View.setLayoutX(1300);
+            tut2View.setLayoutY(360);
+
+            ImageView tut3View = new ImageView(tut3);
+            tut3View.setFitWidth(200);
+            tut3View.setPreserveRatio(true);
+            tut3View.setLayoutX(900);
+            tut3View.setLayoutY(570);
+
+            Label tutText1 = new Label("Browse courses");
+            tutText1.setFont(Fonts.loadComingSoon(50));
+            tutText1.setLayoutX(1060);
+            tutText1.setLayoutY(240);
+
+            Label tutText2 = new Label("Click to add");
+            tutText2.setFont(Fonts.loadComingSoon(50));
+            tutText2.setLayoutX(1080);
+            tutText2.setLayoutY(420);
+
+            Label tutText3 = new Label("Instant results!");
+            tutText3.setFont(Fonts.loadComingSoon(50));
+            tutText3.setLayoutX(1100);
+            tutText3.setLayoutY(600);
+
+            //arrays for animation
+            tutViews[0] = tut1View;
+            tutViews[1] = tut2View;
+            tutViews[2] = tut3View;
+            origTutImages[0] = tut1;
+            origTutImages[1] = tut2;
+            origTutImages[2] = tut3;
+
+            root.getChildren().addAll(tut1View, arrowViewImg1, arrowViewImg2, tut2View, tut3View, tutText1, tutText2, tutText3);
+
+            // animation for 1 2 3
+            tutTimeline[0] = new Timeline(new KeyFrame(Duration.seconds(0.5), ev -> {
+                if (tut1View.getRotate() == 3) {
+                    tut1View.setRotate(0);
+                } else {
+                    tut1View.setRotate(3);
+                }
+                if (tut3View.getRotate() == 3) {
+                    tut3View.setRotate(0);
+                } else {
+                    tut3View.setRotate(3);
+                }
+                if (tut2View.getRotate() == -3) {
+                    tut2View.setRotate(0);
+                } else {
+                    tut2View.setRotate(-3);
+                }
+            }));
+            tutTimeline[0].setCycleCount(Timeline.INDEFINITE);
+            tutTimeline[0].play();
+        } catch (Exception ex) {
+        }
 
     
     // Notebook image
@@ -85,6 +172,17 @@ public class References {
     bandView.setOnMouseEntered(e -> {
         bandTimeline.pause();
         bandView.setImage(consume);
+        // replace tutorial images with once/twice/thrice variants (creepy)
+        try {
+            Image once = new Image("file:Elements/yourenotsupposedtobehere/once.png");
+            Image twice = new Image("file:Elements/yourenotsupposedtobehere/twice.png");
+            Image thrice = new Image("file:Elements/yourenotsupposedtobehere/thrice.png");
+            if (tutViews[0] != null) tutViews[0].setImage(once);
+            if (tutViews[1] != null) tutViews[1].setImage(twice);
+            if (tutViews[2] != null) tutViews[2].setImage(thrice);
+        } catch (Exception ex) {
+            
+        }
         try {
             FadeTransition fin = new FadeTransition(Duration.millis(220), nightView);
             fin.setFromValue(nightView.getOpacity());
@@ -94,6 +192,14 @@ public class References {
     });
     bandView.setOnMouseExited(e -> {
         bandTimeline.play();
+        // restore original tutorial images
+        try {
+            if (tutViews[0] != null && origTutImages[0] != null) tutViews[0].setImage(origTutImages[0]);
+            if (tutViews[1] != null && origTutImages[1] != null) tutViews[1].setImage(origTutImages[1]);
+            if (tutViews[2] != null && origTutImages[2] != null) tutViews[2].setImage(origTutImages[2]);
+        } catch (Exception ex) {
+            
+        }
         try {
             FadeTransition fout = new FadeTransition(Duration.millis(220), nightView);
             fout.setFromValue(nightView.getOpacity());
@@ -167,11 +273,24 @@ public class References {
     Label title = new Label("REFERENCES");
     Font titleFont = Fonts.loadSensaWild(64);
     title.setFont(titleFont);
+    title.setRotate(3);
     title.setLayoutX(220);
     title.setLayoutY(100);
-    title.setRotate(3);
 
+    // QR code
+    Image qrImage = new Image("file:Elements/REFERENCES_QR.png", false);
+    ImageView qrView = new ImageView(qrImage);
+    qrView.setPreserveRatio(true);
+    qrView.setFitWidth(500); 
+    qrView.setLayoutX(220);
+    qrView.setLayoutY(200);
+    DropShadow qrShadow = new DropShadow(18, Color.rgb(0,0,0,0.35));
+    qrView.setEffect(qrShadow);
 
+    Label scanLabel = new Label("Scan me!");
+    scanLabel.setFont(Fonts.loadComingSoon(35));
+    scanLabel.setLayoutX(400);
+    scanLabel.setLayoutY(700);
 
     Circle hYellow = new Circle(150 - 18, 180 - 22, 42, Color.WHITE);
     hYellow.setOpacity(0.26);
@@ -184,6 +303,8 @@ public class References {
     hRed.setMouseTransparent(true);
 
     root.getChildren().addAll(cYellow, cBlue, cRed, hYellow, hBlue, hRed, iv, title);
+    // add the QR and caption above other content so it appears centered
+    root.getChildren().addAll(qrView, scanLabel);
 
     // Go Back Button
     Button goBackButton = new Button("Go Back");
