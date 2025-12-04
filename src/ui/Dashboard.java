@@ -951,37 +951,73 @@ public class Dashboard {
                         	        // additionally fail the lab if it overlaps with the lecture we're about to add
                         	        if (overlaps(lab, lec)) {
                         	            labReason = "Time overlap with the lecture section " + lec.getCourseCode() + " " + lec.getSection();
-                        	        }
+                        	        }                        	        
                         	    }
                         	}
                         	// add lec/lab to edit table
                         	if (lec != null && lecReason == null) {
-                        	    user.addCourse(lec);
-                        	    calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
-                        	    addedAny = true;
+                        	    // If there is a lab, require both lecture and lab to validate before adding either.
+                        	    if (lab != null) {
+                        	        if (labReason != null) {
+                        	            // lab is invalid, failed
+                        	            if (failReason == null) failReason = "Lab not added: " + labReason;
+                        	        } else {
+                        	            // Pre-validate both against the current schedule 
+                        	            String lecValidation = validateCourseForUser(lec, user);
+                        	            String labValidation = validateCourseForUser(lab, user);
 
-                        	    // add lab to user's schedule if present and valid
-                        	    if (lab != null && labReason == null) {
-                        	        user.addCourse(lab);
-                        	        calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                        	    } else if (lab != null && labReason != null) {
-                        	        if (failReason == null) failReason = "Lab not added: " + labReason;
+                        	            if (lecValidation != null || labValidation != null) {
+                        	                // Compose failReason 
+                        	                if (lecValidation != null) {
+                        	                    if (failReason == null) failReason = "Lecture not added: " + lecValidation;                        	                    
+                        	                }
+                        	                if (labValidation != null) {
+                        	                    if (failReason == null) failReason = "Lab not added: " + labValidation;
+                        	                    else failReason = failReason + "; Lab not added: " + labValidation;
+                        	                }
+                        	                
+                        	            } else {
+                        	                // both OK 
+                        	                user.addCourse(lec);
+                        	                calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                        	                addedAny = true;
+
+                        	                user.addCourse(lab);
+                        	                calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+
+                        	                // show only one row for the pair
+                        	                if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                        	            }
+                        	        }
+                        	    } else {
+                        	        // no lab to consider 
+                        	        user.addCourse(lec);
+                        	        calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                        	        addedAny = true;
+
+                        	        // show only one row for the pair
+                        	        if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
                         	    }
-                        	    // show only one row for the pair
-                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
 
                         	} else if (lab != null && labReason == null) {
                         	    // lecture either not present or couldn't be added, but lab can be
-                        		if(user.getCourses().contains(lab.getlectureSection())) {
-                            	    user.addCourse(lab);
-                            	    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                            	    addedAny = true;                        			
-                        		} else {
-                        			failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + lab.getlectureSection().getSection() + "\" does not exist";
+                        	    if (user.getCourses().contains(lab.getlectureSection())) {
+                        	        // validate lab before adding (this will catch duplicate-lab, time overlaps, etc.)
+                        	        String v = validateCourseForUser(lab, user);
+                        	        if (v != null) {
+                        	            failReason = "Lab not added: " + v;
+                        	        } else {
+                        	            user.addCourse(lab);
+                        	            calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                        	            addedAny = true;
+                        	            if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                        	        }
+                        	    } else {
+                        	        failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" +
+                        	            (lab.getlectureSection() == null ? "unknown" : lab.getlectureSection().getSection()) +
+                        	            "\" does not exist";
+                        	    }
 
-                        		}                       		
-
-                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
                         	} else {
                         	    // neither added
                         	    if (lec != null && lecReason != null)
@@ -990,19 +1026,21 @@ public class Dashboard {
                         	        failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
                         	}
 
-                            if (addedAny) {
-                                btn.setDisable(true);
-                                btn.setText("ADDED");
-                                showToast(root, "Added to your schedule", 2200);
-                            }
-                            if (!addedAny && failReason != null) {
-                                showToast(root, failReason, 3200);
-                            } else if (!addedAny && failReason == null) {
-                                showToast(root, "Nothing added", 1800);
-                            }
-                            
-                            classTable.refresh();
-                            if (editTableRef[0] != null) editTableRef[0].refresh();
+                        	if (addedAny) {
+                        	    btn.setDisable(true);
+                        	    btn.setText("ADDED");
+                        	    showToast(root, "Added to your schedule", 2200);
+                        	}
+                        	if (!addedAny && failReason != null) {
+                        	    showToast(root, failReason, 3200);
+                        	} else if (!addedAny && failReason == null) {
+                        	    showToast(root, "Nothing added", 1800);
+                        	}
+
+                        	classTable.refresh();
+                        	if (editTableRef[0] != null) editTableRef[0].refresh();
+
+
                             
                         } catch (Exception ex) { ex.printStackTrace(); }
                     });
@@ -1630,6 +1668,29 @@ public class Dashboard {
                     && Objects.equals(c.getDays(), selectedCourse.getDays())) {
             	return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
             }
+        }
+        
+        if(selectedCourse instanceof Laboratory) {
+        	Laboratory currentLab = (Laboratory) selectedCourse;
+        	Lecture lecture = currentLab.getlectureSection();
+        	ArrayList<Laboratory> labSections = lecture.getLabSections();
+        	
+        	for(Laboratory l: labSections) {
+        		if(user.getCourses().contains(l)) {
+        			return "Laboratory section \"" + l.getSection() + "\" already exists";
+        		}
+        	}       	        	
+        }
+        
+        if(selectedCourse instanceof Lecture) {
+        	Lecture currentLec = (Lecture) selectedCourse;
+        	ArrayList<Laboratory> labSections = currentLec.getLabSections();
+        	
+        	for(Laboratory l: labSections) {
+        		if(user.getCourses().contains(l)) {
+        			return "Laboratory section \"" + l.getSection() + "\" already exists";
+        		}
+        	}       	        	
         }
 
         // parse new course time and days
