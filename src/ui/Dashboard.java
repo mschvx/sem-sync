@@ -529,6 +529,8 @@ public class Dashboard {
         manageLabel.setPrefWidth(calWidth);
         manageLabel.setPrefHeight(48);
         manageLabel.getStyleClass().add("fixed-header");
+        
+        // test merge conflict
 
         // Search fields (placeholders - not wired yet)
         Label lblSearchCode = new Label("Search by Course Code");
