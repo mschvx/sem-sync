@@ -40,7 +40,15 @@ public class Catalogue {
 	public void showCatalogue(Stage primaryStage, Students user) {
 		Pane root = new Pane();
 		Scene scene = new Scene(root, 1536, 864);
-		scene.getStylesheets().add(Main.class.getResource("application.css").toExternalForm());
+		java.net.URL cssUrl = Main.class.getResource("application.css");
+		if (cssUrl != null) {
+			scene.getStylesheets().add(cssUrl.toExternalForm());
+		} else {
+			Path cssPath = Paths.get("src", "application", "application.css");
+			if (Files.exists(cssPath)) {
+				scene.getStylesheets().add(cssPath.toUri().toString());
+			}
+		}
 
 		Label title = new Label("Catalogue");
 		title.setFont(Fonts.loadSensaSerif(88));

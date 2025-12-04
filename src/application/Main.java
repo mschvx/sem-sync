@@ -162,7 +162,15 @@ public class Main extends Application {
             root.getChildren().add(content);
 
             Scene scene = new Scene(root,1536,864);
-            scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+            java.net.URL cssUrl = getClass().getResource("application.css");
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl.toExternalForm());
+            } else {
+                Path cssPath = Paths.get("src", "application", "application.css");
+                if (Files.exists(cssPath)) {
+                    scene.getStylesheets().add(cssPath.toUri().toString());
+                }
+            }
             primaryStage.setScene(scene);
             primaryStage.setTitle("SemSync - Log In");
             primaryStage.setMaximized(true);
