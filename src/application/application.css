@@ -343,6 +343,18 @@
     /* use JavaFX drop shadow effect */
     -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.18), 10, 0.5, 0, 4);
 }
+
+.toast-error {
+    background: linear-gradient(#f87171, #ef4444);
+    -fx-background-color: linear-gradient(#f87171, #ef4444);
+    color: white; -fx-text-fill: white;
+    padding: 14px 22px 14px 22px; -fx-padding: 14 22 14 22;
+    border-radius: 12px; -fx-background-radius: 12;
+    font-family: "Montserrat"; -fx-font-family: "Montserrat";
+    font-size: 16px; -fx-font-size: 16px;
+    font-weight: bold; -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(239,68,68,0.18), 10, 0.5, 0, 4);
+}
 .pair-card-header .label {
     -fx-text-fill: white;
     -fx-font-weight: bold;

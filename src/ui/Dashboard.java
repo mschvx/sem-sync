@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.scene.text.Font;
@@ -58,6 +59,8 @@ import students.Students;
 import javafx.scene.input.MouseEvent;
 
 public class Dashboard {
+
+    private static final boolean DEBUG_VALIDATION = false;
 
     private Map<Lecture, Laboratory> lectureToAddedLab = new HashMap<>();
     // Show dashboard for a specific user (so we can display degree greeting)
@@ -642,9 +645,14 @@ public class Dashboard {
                         
                         String[] labSecParts = section.split("-");
                         String lec = labSecParts[0].trim();
-                        
-                    	for(Lecture l : lecSections) {               		
-                    		if(lec.equals(l.getSection())) {
+                        String labCourseNorm = normalizeCourseCode(courseCode).toUpperCase();
+
+                    	for(Lecture l : lecSections) {
+                    		if (l == null) continue;
+                    		String lecSection = l.getSection() == null ? "" : l.getSection().trim();
+                    		String lecCourseNorm = normalizeCourseCode(l.getCourseCode() == null ? "" : l.getCourseCode()).toUpperCase();
+
+                    		if (lecSection.equalsIgnoreCase(lec) && !lecCourseNorm.isEmpty() && lecCourseNorm.equals(labCourseNorm)) {
                     			l.addLabSection(lab);
                     			lab.setlectureSection(l);
                     			lectureToAddedLab.put(l, lab);
@@ -665,8 +673,14 @@ public class Dashboard {
                 if (lecSec == null) continue;
                 String[] parts = lecSec.split("-");
                 if (parts.length > 0) lecSec = parts[0].trim();
+
+                String labCourseNorm = normalizeCourseCode(lab.getCourseCode() == null ? "" : lab.getCourseCode()).toUpperCase();
+
                 for (Lecture L : lecSections) {
-                    if (L.getSection() != null && lecSec.equalsIgnoreCase(L.getSection())) {
+                    if (L == null) continue;
+                    String Lsec = L.getSection() == null ? "" : L.getSection();
+                    String lecCourseNorm = normalizeCourseCode(L.getCourseCode() == null ? "" : L.getCourseCode()).toUpperCase();
+                    if (Lsec != null && lecSec.equalsIgnoreCase(Lsec) && !labCourseNorm.isEmpty() && lecCourseNorm.equals(labCourseNorm)) {
                         L.addLabSection(lab);
                         lab.setlectureSection(L);
                         break;
@@ -943,52 +957,77 @@ public class Dashboard {
                         	String lecReason = null;
                         	String labReason = null;
 
-                        	if (lec != null) lecReason = validateCourseForUser(lec, user);
+                            if (lec != null) lecReason = validateCourseForUser(lec, user, lab == null ? null : java.util.Collections.singletonList(lab));
 
-                        	if (lab != null) {
-                        	    labReason = validateCourseForUser(lab, user);
-                        	    if (labReason == null && lec != null && lecReason == null) {
-                        	        // additionally fail the lab if it overlaps with the lecture we're about to add
-                        	        if (overlaps(lab, lec)) {
-                        	            labReason = "Time overlap with the lecture section " + lec.getCourseCode() + " " + lec.getSection();
-                        	        }
-                        	    }
-                        	}
-                        	// add lec/lab to edit table
-                        	if (lec != null && lecReason == null) {
-                        	    user.addCourse(lec);
-                        	    calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
-                        	    addedAny = true;
+                            if (lab != null) {
+                                labReason = validateCourseForUser(lab, user, lec == null ? null : java.util.Collections.singletonList(lec));
+                                if (labReason == null && lec != null && lecReason == null) {
+                                    // additionally fail the lab if it overlaps with the lecture we're about to add
+                                    if (overlaps(lab, lec)) {
+                                        labReason = "Time overlap with the lecture section " + lec.getCourseCode() + " " + lec.getSection();
+                                    }
+                                }
 
-                        	    // add lab to user's schedule if present and valid
-                        	    if (lab != null && labReason == null) {
-                        	        user.addCourse(lab);
-                        	        calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                        	    } else if (lab != null && labReason != null) {
-                        	        if (failReason == null) failReason = "Lab not added: " + labReason;
-                        	    }
-                        	    // show only one row for the pair
-                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
-
-                        	} else if (lab != null && labReason == null) {
-                        	    // lecture either not present or couldn't be added, but lab can be
-                        		if(user.getCourses().contains(lab.getlectureSection())) {
-                            	    user.addCourse(lab);
-                            	    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
-                            	    addedAny = true;                        			
-                        		} else {
-                        			failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + lab.getlectureSection().getSection() + "\" does not exist";
-
-                        		}                       		
-
-                        	    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
-                        	} else {
-                        	    // neither added
-                        	    if (lec != null && lecReason != null)
-                        	        failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
-                        	    if (lab != null && labReason != null)
-                        	        failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
-                        	}
+                                // Extra explicit check: ensure the lab does not overlap ANY existing course (including other labs)
+                                if (labReason == null) {
+                                    for (Course existing : user.getCourses()) {
+                                        if (existing == null) continue;
+                                        if (existing.equals(lec)) continue; // skip the lecture we're adding together
+                                        if (overlaps(lab, existing)) {
+                                            labReason = "Time overlap with " + existing.getCourseCode() + " " + existing.getSection();
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            // add lec/lab to edit table
+                            if (lec != null) {
+                                if (lab != null) {
+                                    // Both lecture and lab present in the pair: require both to be valid before adding
+                                    if (lecReason == null && labReason == null) {
+                                        user.addCourse(lec);
+                                        calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                                        user.addCourse(lab);
+                                        calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                        // remember which lab was actually added for this lecture
+                                        try { if (lec instanceof Lecture) lectureToAddedLab.put((Lecture)lec, lab); } catch (Exception ignore) {}
+                                        addedAny = true;
+                                        if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                                    } else {
+                                        // do not add either if the lab conflicts; report the reasons
+                                        if (lecReason != null) failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
+                                        if (labReason != null) failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
+                                    }
+                                } else {
+                                    // only lecture present
+                                    if (lecReason == null) {
+                                        user.addCourse(lec);
+                                        calendar.addCourse(lec, FXCollections.observableArrayList(user.getCourses()));
+                                        addedAny = true;
+                                        if (editTableRef[0] != null) editTableRef[0].getItems().add(lec);
+                                    } else {
+                                        failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
+                                    }
+                                }
+                            } else if (lab != null && labReason == null) {
+                                // lecture either not present or couldn't be added, but lab can be (standalone lab addition)
+                                if(user.getCourses().contains(lab.getlectureSection())) {
+                                    user.addCourse(lab);
+                                    calendar.addCourse(lab, FXCollections.observableArrayList(user.getCourses()));
+                                    addedAny = true;
+                                    // record mapping from its lecture to this lab so edit table shows correct pairing
+                                    try { Lecture parent = lab.getlectureSection(); if (parent != null) lectureToAddedLab.put(parent, lab); } catch (Exception ignore) {}
+                                    if (editTableRef[0] != null) editTableRef[0].getItems().add(lab);
+                                } else {
+                                    failReason = "Lecture not added: " + lecReason + " Lab not added: Lecture section \"" + lab.getlectureSection().getSection() + "\" does not exist";
+                                }
+                            } else {
+                                // neither added
+                                if (lec != null && lecReason != null)
+                                    failReason = (failReason == null) ? ("Lecture not added: " + lecReason) : (failReason + "; Lecture not added: " + lecReason);
+                                if (lab != null && labReason != null)
+                                    failReason = (failReason == null) ? ("Lab not added: " + labReason) : (failReason + "; Lab not added: " + labReason);
+                            }
 
                             if (addedAny) {
                                 btn.setDisable(true);
@@ -1274,10 +1313,20 @@ public class Dashboard {
                     rightHeader.setStyle("-fx-text-fill: #0b2545; -fx-font-weight: bold;");
 
                     if (lab == null) {
-                        // attempt to find a matching lab when starting from a lecture
+                        // prefer the lab the user actually added (if any)
                         if (lecture instanceof Lecture) {
                             Lecture L = (Lecture) lecture;
-                            if (!L.getLabSections().isEmpty()) lab = L.getLabSections().get(0);
+                            Laboratory mapped = lectureToAddedLab.get(L);
+                            if (mapped != null && user.getCourses().contains(mapped)) {
+                                lab = mapped;
+                            } else {
+                                // otherwise prefer any lab from L.getLabSections() that the user has added
+                                for (Laboratory candidate : L.getLabSections()) {
+                                    if (user.getCourses().contains(candidate)) { lab = candidate; break; }
+                                }
+                                // fallback to the first lab offering if nothing added
+                                if (lab == null && !L.getLabSections().isEmpty()) lab = L.getLabSections().get(0);
+                            }
                         }
                     }
 
@@ -1407,6 +1456,24 @@ public class Dashboard {
         bottomSpacer.setPrefWidth(1);
         bottomSpacer.setPrefHeight(BOTTOM_PADDING); // NOTE TO SELF: ADJUST THIS IF EVER
 
+        // View Catalogue button 
+        Button btnViewCatalogue = new Button("VIEW CATALOGUE");
+        btnViewCatalogue.setPrefWidth(220);
+        btnViewCatalogue.setPrefHeight(48);
+        btnViewCatalogue.setFont(Fonts.loadSensaWild(22));
+        btnViewCatalogue.getStyleClass().add("btn-create");
+        btnViewCatalogue.getStyleClass().add("sidebar-pill");
+        btnViewCatalogue.layoutXProperty().bind(searchArea.layoutXProperty());
+        btnViewCatalogue.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
+            editTable.getLayoutY() + editTable.getPrefHeight() + 18,
+            editTable.layoutYProperty(), editTable.prefHeightProperty()));
+        btnViewCatalogue.setOnAction(ev -> {
+            try {
+                System.out.println("test");
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        btnViewCatalogue.setFocusTraversable(false);
+
         lblSearchCode.layoutXProperty().bind(searchArea.layoutXProperty().add(0));
         lblSearchCode.layoutYProperty().bind(Bindings.createDoubleBinding(() ->
             manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 24,
@@ -1417,7 +1484,7 @@ public class Dashboard {
             manageLabel.getLayoutY() + manageLabel.getPrefHeight() + 24,
             manageLabel.layoutYProperty()));
 
-        content.getChildren().addAll(calendarLabel, calendarPane, manageLabel, lblSearchCode, lblSearchSection, searchArea, classTable, paginationPane, editLabel, editTable, bottomSpacer);
+        content.getChildren().addAll(calendarLabel, calendarPane, manageLabel, lblSearchCode, lblSearchSection, searchArea, classTable, paginationPane, editLabel, editTable, btnViewCatalogue, bottomSpacer);
         // 
         try {
             profileView.layoutXProperty().bind(scene.widthProperty().subtract(profileView.fitWidthProperty()).subtract(10));
@@ -1614,21 +1681,79 @@ public class Dashboard {
     
     // di ko natest to
     private String validateCourseForUser(Course selectedCourse, Students user) {
+        return validateCourseForUser(selectedCourse, user, null);
+    }
+
+    // Overload that allows passing a collection of courses to ignore during validation
+    private String validateCourseForUser(Course selectedCourse, Students user, java.util.Collection<Course> ignore) {
         if (selectedCourse == null || user == null) return "Invalid selection";
 
         // duplicate course/section 
         for (Course c : user.getCourses()) {
+            if (ignore != null && ignore.contains(c)) continue;
             if (Objects.equals(c.getCourseCode(), selectedCourse.getCourseCode())
                     && Objects.equals(c.getSection(), selectedCourse.getSection())) {
                 return "Duplicate course/section";
             }
         }
-        
-        
+
+        // Prevent adding another section of the same course code 
+        String selNorm = normalizeCourseCode(selectedCourse.getCourseCode()).toUpperCase();
         for (Course c : user.getCourses()) {
+            if (ignore != null && ignore.contains(c)) continue;
+            String exNorm = normalizeCourseCode(c.getCourseCode()).toUpperCase();
+            if (selNorm.isEmpty() || exNorm.isEmpty()) continue;
+            if (selNorm.equals(exNorm)) {
+                boolean sameSection = Objects.equals(c.getSection(), selectedCourse.getSection());
+                if (sameSection) {
+                    return "Duplicate course/section";
+                }
+
+                // If candidate is a laboratory and existing is its paired Lecture, allow it
+                if (selectedCourse instanceof Laboratory && c instanceof Lecture) {
+                    Laboratory lab = (Laboratory) selectedCourse;
+                    Lecture lec = (Lecture) c;
+                    try {
+                        if (lab.getlectureSection() != null && lab.getlectureSection().equals(lec)) {
+                            continue;
+                        }
+                    } catch (Exception ignoreEx) {}
+                }
+
+                // If candidate is a Lecture and existing is a Laboratory paired to it, allow it
+                if (selectedCourse instanceof Lecture && c instanceof Laboratory) {
+                    Laboratory lab = (Laboratory) c;
+                    Lecture lec = (Lecture) selectedCourse;
+                    try {
+                        if (lab.getlectureSection() != null && lab.getlectureSection().equals(lec)) {
+                            continue;
+                        }
+                    } catch (Exception ignoreEx) {}
+                }
+
+                // else, block adding another section of same course code
+                return "Course already added (different section)";
+            }
+        }
+
+        // exact same times & days string 
+        for (Course c : user.getCourses()) {
+            if (ignore != null && ignore.contains(c)) continue;
             if (Objects.equals(c.getTimes(), selectedCourse.getTimes())
                     && Objects.equals(c.getDays(), selectedCourse.getDays())) {
-            	return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
+                return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
+            }
+        }
+
+        //  strict check normalize time ranges and day sets and compare for exact match
+        String selCanon = canonicalTimeDays(selectedCourse);
+        if (selCanon != null && !selCanon.isEmpty()) {
+            for (Course c : user.getCourses()) {
+                if (ignore != null && ignore.contains(c)) continue;
+                String exCanon = canonicalTimeDays(c);
+                if (exCanon != null && exCanon.equals(selCanon)) {
+                    return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
+                }
             }
         }
 
@@ -1642,19 +1767,30 @@ public class Dashboard {
         if (newDays == null || newDays.isEmpty() || (newStart == 0 && newEnd == 0)) return null;
 
         for (Course c : user.getCourses()) {
+            if (ignore != null && ignore.contains(c)) continue;
             Set<String> existDays = parseDays(c.getDays());
-            if (existDays == null || !daysOverlap(newDays, existDays)) continue;
-
             double[] existRange = parseTimeRangeDecimal(c.getTimes());
             double existStart = existRange[0];
             double existEnd = existRange[1];
 
-            // 
-            if (newStart < existEnd && newEnd > existStart) {
+            if (DEBUG_VALIDATION) {
+                System.out.println("[VALIDATION] Checking: Selected=" + (selectedCourse == null ? "null" : (selectedCourse.getCourseCode() + " " + selectedCourse.getSection()))
+                    + " times='" + selectedCourse.getTimes() + "' days='" + selectedCourse.getDays() + "' -> range=[" + newStart + "," + newEnd + "] days=" + newDays);
+                System.out.println("[VALIDATION]              Against: Existing=" + (c == null ? "null" : (c.getCourseCode() + " " + c.getSection()))
+                    + " times='" + c.getTimes() + "' days='" + c.getDays() + "' -> range=[" + existStart + "," + existEnd + "] days=" + existDays);
+            }
+
+            if (existDays == null || !daysOverlap(newDays, existDays)) continue;
+
+            boolean overlap = (newStart < existEnd && newEnd > existStart);
+            if (overlap) {
+                if (DEBUG_VALIDATION) System.out.println("[VALIDATION] => Overlap TRUE for selected " + selectedCourse.getCourseCode() + " and existing " + c.getCourseCode());
                 return "Time overlap with " + c.getCourseCode() + " " + c.getSection();
+            } else {
+                if (DEBUG_VALIDATION) System.out.println("[VALIDATION] => Overlap FALSE for selected " + selectedCourse.getCourseCode() + " and existing " + c.getCourseCode());
             }
         }
-                
+
         return null;
     }
 
@@ -1690,11 +1826,7 @@ public class Dashboard {
         }
     }
 
-    /**
-     * Parse "start-end" where start and end are "H:mm" or "HH:mm".
-     * Returns [startDecimal, endDecimal]. If end <= start, adds 12 to end.
-     * Returns {0.0,0.0} on total failure.
-     */
+    // gawing time hour and mins
     private double[] parseTimeRangeDecimal(String raw) {
         if (raw == null) return new double[]{0.0, 0.0};
         String[] parts = raw.split("-");
@@ -1718,9 +1850,21 @@ public class Dashboard {
     private void showToast(Pane parent, String message, int durationMs) {
         if (parent == null || message == null) return;
         Label toast = new Label(message);
-        boolean success = message.toLowerCase().contains("added");
-        if (success) toast.getStyleClass().add("toast-success"); else toast.getStyleClass().add("toast-default");
-        toast.setFont(Fonts.loadMontserratRegular(success ? 18 : 16));
+        String lower = message.toLowerCase();
+        // detect explicit error/negative messages first
+        boolean isError = lower.contains("not added") || lower.contains("nothing added") || lower.contains("does not exist") || lower.contains("error") || lower.contains("fail") || lower.contains("failed") || lower.contains("overlap") || lower.contains("cannot") || lower.contains("can't") || lower.contains("conflict") || lower.contains("overlaps");
+        boolean isSuccess = lower.contains("added") || lower.contains("removed");
+
+        if (isError) {
+            toast.getStyleClass().add("toast-error");
+            toast.setFont(Fonts.loadMontserratRegular(16));
+        } else if (isSuccess) {
+            toast.getStyleClass().add("toast-success");
+            toast.setFont(Fonts.loadMontserratRegular(18));
+        } else {
+            toast.getStyleClass().add("toast-default");
+            toast.setFont(Fonts.loadMontserratRegular(16));
+        }
         toast.setOpacity(0);
         parent.getChildren().add(toast);
         // place on top
@@ -1801,9 +1945,21 @@ public class Dashboard {
             if (c == null) continue;
             String cc1 = c.getCourseCode() == null ? "" : c.getCourseCode().trim();
             String s1  = c.getSection()    == null ? "" : c.getSection().trim();
+            String t1  = c.getCourseTitle()== null ? "" : c.getCourseTitle().trim();
             String cc2 = course.getCourseCode() == null ? "" : course.getCourseCode().trim();
             String s2  = course.getSection()    == null ? "" : course.getSection().trim();
-            if (cc1.equalsIgnoreCase(cc2) && s1.equalsIgnoreCase(s2)) return true;
+            String t2  = course.getCourseTitle()== null ? "" : course.getCourseTitle().trim();
+
+            // Normalize course codes 
+            String ncc1 = normalizeCourseCode(cc1).toUpperCase();
+            String ncc2 = normalizeCourseCode(cc2).toUpperCase();
+
+            // For some sections that have same naming and errors
+            boolean codesEqual = !ncc1.isEmpty() && !ncc2.isEmpty() ? ncc1.equals(ncc2) : cc1.equalsIgnoreCase(cc2);
+            boolean sectionsEqual = s1.equalsIgnoreCase(s2);
+            boolean titlesEqualWhenNeeded = !(ncc1.isEmpty() || ncc2.isEmpty()) ? true : t1.equalsIgnoreCase(t2);
+
+            if (codesEqual && sectionsEqual && titlesEqualWhenNeeded) return true;
         }
         return false;
     }
@@ -1824,6 +1980,25 @@ public class Dashboard {
         double sA = rA[0], eA = rA[1], sB = rB[0], eB = rB[1];
         if ((sA == 0 && eA == 0) || (sB == 0 && eB == 0)) return false;
         return sA < eB && eA > sB;
+    }
+
+    // Create a canonical representation of time range + sorted day tokens for exact comparisons
+    private String canonicalTimeDays(Course c) {
+        if (c == null) return "";
+        String times = c.getTimes();
+        String days = c.getDays();
+        if (times == null) times = "";
+        if (days == null) days = "";
+        double[] range = parseTimeRangeDecimal(times);
+        double s = range[0], e = range[1];
+        Set<String> daySet = parseDays(days);
+        if (daySet == null || daySet.isEmpty()) return "";
+        List<String> ds = new ArrayList<>(daySet);
+        Collections.sort(ds);
+        String dayStr = String.join("|", ds);
+        // use fixed precision to avoid minor float diffs
+        String rangeStr = String.format("%.2f-%.2f", s, e);
+        return rangeStr + "@" + dayStr;
     }
 
     
